@@ -440,10 +440,66 @@ function ItemGenerate (){
         }
     }
     this.fillChestPro = function (x, y, z, pro){
-        
+        let container = World.getContainer(x, y, z);
+        if(container){
+            let random = Math.random();
+            let slot = Math.random()*27;
+            for(i in this.generateion){
+                let item = {
+                    id: this.generateion[i].id, 
+                    data: this.generateion[i].data, 
+                    count: this.generateion[i].count 
+                };
+                if(this.Prototype.beforeGenerating){
+                    this.Prototype.beforeGenerating(x, y, z, random, slot, item.id, item.data);
+                }
+                if(random<this.generateion[i].random){
+                    let count = Math.floor(Math.random()*(item.count.min))+item.count.min; 
+                    if(pro.isGenerate(slot, x, y, z, random, item.id, item.data, count)){
+                        container.setSlot(slot, item.id, count, item.data);
+                    }
+                    if(pro.setFunction)
+                        pro.setFunction(slot, x, y, z, random, item.id, item.data, count)
+                    slot = Math.random()*27;
+                }
+                if(pro.afterGenerating){
+                    pro.afterGenerating(x, y, z, random, slot, item.id, item.data);
+                } 
+            }
+        }else if(ItemGenerateAPI.deb == true){
+            Game.tipMessage("noy chest")
+        }
     }
     this.fillChestSit = function (x, y, z, sid){
-        
+        let container = World.getContainer(x, y, z);
+        if(container){
+            let random = sid.nextInt(100);
+            let slot = sid.nextInt(27);
+            for(i in this.generateion){
+                let item = {
+                    id: this.generateion[i].id, 
+                    data: this.generateion[i].data, 
+                    count: this.generateion[i].count 
+                };
+                if(this.Prototype.beforeGenerating){
+                    this.Prototype.beforeGenerating(x, y, z, random, slot, item.id, item.data);
+                }
+                if(random<this.generateion[i].random){
+                    let count = Math.floor(Math.random()*(item.count.min))+item.count.min; 
+                    if(this.Prototype.isGenerate(slot, x, y, z, random, item.id, item.data, count)){
+                        container.setSlot(slot, item.id, count, item.data);
+                    }
+                    if(this.Prototype.setFunction)
+                        this.Prototype.setFunction(slot, x, y, z, random, item.id, item.data, count)
+                    slot = sid.nextInt(27);
+                }
+                if(this.Prototype.afterGenerating){
+                    this.Prototype.afterGenerating(x, y, z, random, slot, item.id, item.data);
+                } 
+            }
+        }else if(ItemGenerateAPI.deb == true){
+            Game.tipMessage("noy chest")
+        }
     }
     this.setItems = function (arr){
         this.generateion = arr;
