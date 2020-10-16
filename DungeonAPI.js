@@ -1,6 +1,6 @@
 LIBRARY({
     name: "DungeonAPI",
-    version: 4, 
+    version: 5, 
     api: "CoreEngine",
 });
 /*
@@ -11,18 +11,11 @@ LIBRARY({
     3.Явное копирование кода
 
     Используя библиотеку вы автоматически соглашаетесь с этими правилами.
-V 1.0 
-1)создана библиотека :) 
-V 1.1
-1)размер файлов уменьшен в 3 раза
-2)изменена система чтения файла была изменена(файлы которые были созданы ранее будут работать)
-2)изменена система сохранения
-V 1.2
-1)ДОБАВЛЕНЫ НОВЫЕ ФУНКЦИИ 
-V 1.3
-1)добавлен повород структуры
 */
 alert("https://vk.com/club186544580");
+function random(max){
+    return Math.floor(Math.random()*max);
+}
 let StructureDir = "structure";
 var Dungeon = {
     removeBlockStructure: function (name, identifier){
@@ -381,61 +374,79 @@ Callback.addCallback("ItemUse", function(coords, item){
 	      firstClick = firstClick?false:true;
 }
 });
+let dir = "ItemGenerate";
+let ItemGenerateAPI = {
+    deb: false, 
+    setDir: function (path){
+        dir = path;
+    }, 
+    debug: function(value){
+        this.deb = value
+    }
+};
 function ItemGenerate (){
-    let GenerateionItem = [];
-    let code;
+    this.generateion = []
+    this.Prototype = {
+        isGenerate: function(x, y, z, random, slot, id, data){
+            return true;
+        }
+    }
+    this.importJson = function (file, value){
+        this.generateion = FileTools.ReadJSON(__dir__+"/"+dir+"/"+file);
+    }
+    this.exportJson = function (file){
+        FileTools.WriteJSON(__dir__+"/"+dir+"/"+file, this.generateion, value);
+    }
     this.addItem = function (id, random, count, data){
         random = random||1;
         count = count||{};
         count.min = count.min||1;
         count.max = count.max||1;
         data = data||0;
-        GenerateionItem.push({id:id, data:data, random:random, count:count});
+        this.generateion.push({id:id, data:data, random:random, count:count});
     }
-    this.setPrototype = function(obj) {
-        code = obj;
+    this.setPrototype = function (obj){
+        this.Prototype = obj
     }
     this.fillChest = function (x, y, z){
-        var container = World.getContainer(x, y, z);
+        let container = World.getContainer(x, y, z);
         if(container){
-            var random = Math.random();
-            var slot = Math.random()*27;
-            for(var i in GenerateionItem){
-                if(random<GenerateionItem[i].random){
-                    var slot1 = container.getSlot(slot);
-                    var count = Math.floor(Math.random()*(GenerateionItem[i].count.max-GenerateionItem[i].count.min))+GenerateionItem[i].count.min; 
-                    if(code.isGenerate(slot, x, y, z, GenerateionItem[i].id, GenerateionItem[i].data, count))
-                        container.setSlot(slot, GenerateionItem[i].id, count, GenerateionItem[i].data);
-                    if(code.setFunction)
-                        code.setFunction(slot, x, y, z, GenerateionItem[i].id, GenerateionItem[i].data, count)
+            let random = Math.random();
+            let slot = Math.random()*27;
+            for(i in this.generateion){
+                let item = {
+                    id: this.generateion[i].id, 
+                    data: this.generateion[i].data, 
+                    count: this.generateion[i].count 
+                };
+                if(this.Prototype.beforeGenerating){
+                    this.Prototype.beforeGenerating(x, y, z, random, slot, item.id, item.data);
+                }
+                if(random<this.generateion[i].random){
+                    let count = Math.floor(Math.random()*(item.count.min))+item.count.min; 
+                    if(this.Prototype.isGenerate(slot, x, y, z, random, item.id, item.data, count)){
+                        container.setSlot(slot, item.id, count, item.data);
+                    }
+                    if(this.Prototype.setFunction)
+                        this.Prototype.setFunction(slot, x, y, z, random, item.id, item.data, count)
                     slot = Math.random()*27;
                 }
+                if(this.Prototype.afterGenerating){
+                    this.Prototype.afterGenerating(x, y, z, random, slot, item.id, item.data);
+                } 
             }
-        }else{
-            //Game.message("error: no chest")
+        }else if(ItemGenerateAPI.deb == true){
+            Game.tipMessage("noy chest")
         }
     }
-    this.fillChestPro = function (x, y, z, func){
-        var container = World.getContainer(x, y, z);
-        if(container){
-            var random = Math.random();
-            var slot = Math.random()*27;
-            for(var i in GenerateionItem){
-                if(random<GenerateionItem[i].random){
-                    var slot1 = container.getSlot(slot);
-                    var count = Math.floor(Math.random()*(GenerateionItem[i].count.max-GenerateionItem[i].count.min))+GenerateionItem[i].count.min; 
-                    this.func = func 
-                    container.setSlot(slot, GenerateionItem[i].id, count, GenerateionItem[i].data);
-                    func(slot, x, y, z, GenerateionItem[i].id, GenerateionItem[i].data, count);
-                    slot = Math.random()*27;
-                }
-            }
-        }else{
-            //Game.message("error: no chest")
-        }
+    this.fillChestPro = function (x, y, z, pro){
+        
     }
-    this.getItem = function (){
-        return GenerateionItem;
+    this.fillChestSit = function (x, y, z, sid){
+        
+    }
+    this.setItems = function (arr){
+        this.generateion = arr;
     }
 }
 var TYPE = {
@@ -472,4 +483,5 @@ function enchantAdd (random, typ, ech){
 EXPORT("DungeonAPI", DungeonAPI);
 EXPORT("Dungeon", Dungeon);
 EXPORT("ItemGenerate", ItemGenerate);
+EXPORT("ItemGenerateAPI", ItemGenerateAPI);
 EXPORT("enchantAdd", enchantAdd);
