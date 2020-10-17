@@ -31,7 +31,7 @@ var Dungeon = {
     addBlockStructure: function (name, identifier){
         let path = __dir__ + "/"+ StructureDir +"/" + name;
         let arr = FileTools.ReadJSON(path);
-        arr += identifier
+        blockArray.push(identifier);
         FileTools.WriteJSON(path, arr, true);
     }, 
     setStructure: function (name, xx, yy, zz, rotation){
@@ -106,7 +106,7 @@ var Dungeon = {
         for(i in arr){
             let arr2 = arr[i]
             let id = this.generateionIdentifier(arr2);
-            arr3 += id;
+            blockArray.push(id);
         }
         FileTools.WriteJSON(path2, arr3, t);
     }, 
@@ -207,10 +207,55 @@ var Dungeon = {
             ar.push({id: arr3[0], data: arr3[1], x: x1, y: y1, z: z1});
         }
         return ar;
+    }, 
+    isStructure: function(structure, x, y, z, rotation){
+        let stru = this.getStructure(structure);
+        for(i in stru){
+            let ide = this.getIdentifier(stru[i]);
+            switch(rotation){
+		            	case 0:
+			            	var x1 = ide.x;
+			          		var y1 = ide.y;
+			          		var z1 = ide.z;
+		          			break;
+		          		case 1:
+			            	var x1 = ide.x;
+			          		var y1 = ide.y;
+		          			var z1 = ide.z;
+		          			break;
+	          			case 2:
+			          		var x1 = -ide.x;
+		          			var y1 = ide.y;
+			          		var z1 = ide.z;
+				          	break;
+		          		case 3:
+			          		var x1 = -ide.x;
+			          		var y1 = ide.y;
+	          				var z1 = ide.z;
+			          		break;
+	          		}
+            let xx = x + x1;
+            let yy = y + y1;
+            let zz = z + z1;
+            if(World.getBlock(xx, yy, zz).id==ide.id){
+                if(World.getBlock(xx, yy, zz).data==ide.data){
+                    stru.splice(i, i);
+                }
+            }
+        }
+        if(stru==[]){
+            return true;
+        }else{
+            return false;
+        }
     }
 };
 function DungeonAPI (path){
-    let code = {};
+    let code = {
+        isSetBlock: function(x, y, z, id, data, identifier){
+            return true;
+        }
+    };
     var pathJson = __dir__+ "/" + StructureDir + "/" + path;
     let rota;
     this.setPrototype = function (obj){
@@ -222,6 +267,9 @@ function DungeonAPI (path){
     this.setStructure = function (xx, yy, zz, rotation){
         let arr = FileTools.ReadJSON(pathJson);
         let rot = rotation || 0;
+        if(code.before)
+            code.before(xx, yy, zz, rot);
+        
         for(i in arr){
             let arr3 = arr[i].split(".");
             let id = arr3[0];
@@ -262,10 +310,16 @@ function DungeonAPI (path){
             if(code.setStructure)
                 code.setStructure(x, y, z, id, data, arr3);
         }
+        if(code.after)
+            code.after(xx, yy, zz, rot);
+        
     }
     this.setStructurePro = function (xx, yy, zz, func, rotation){
         let arr = FileTools.ReadJSON(pathJson);
         let rot = rotation || 0;
+        if(func.before)
+            func.before(xx, yy, zz, rot);
+        
         for(i in arr){
             let arr3 = arr[i].split(".");
             let id = arr3[0];
@@ -306,6 +360,9 @@ function DungeonAPI (path){
             if(func.setStructure)
                 func.setStructure(x, y, z, id, data, arr3);
         }
+        if(func.after)
+            func.after(xx, yy, zz, rot);
+        
     }
     this.getStructure = function (){
         let arr = FileTools.ReadJSON(pathJson);
@@ -319,10 +376,10 @@ var blockArray = [];
 Callback.addCallback("NativeCommand", function(str){
     let cmd = str.split(" ");
     if(cmd[0] == "/tool"){
-        Game.prevent();
         Game.message("§2выдан инструмент");
         let coords = Entity.getPosition(Player.get());
         World.drop(coords.x, coords.y, coords.z, ItemID.debugTools, 1);
+        Game.prevent();
     }
     if(cmd[0] == "/structure"){
         if(cmd[1] == "write"){
@@ -336,8 +393,9 @@ Callback.addCallback("NativeCommand", function(str){
 				                  let zi = z - origin.z;
 					                let identifier = b.id + "." + b.data + "." + xi + "." + yi + "." + zi;
 					                if(World.getBlock(x,y,z).id!=0)
-					                    blockArray.push += identifier;
-					                FileTools.WriteJSON (__dir__+"/"+ StructureDir +"/" + cmd[2], blockArray, true);
+					                    blockArray.push(identifier);
+					                
+					                FileTools.WriteJSON (__dir__+"/"+ StructureDir +"/" + cmd[2], blockArray, parseInt(cmd[3]));
                     }
                 } 
             } 
@@ -504,9 +562,11 @@ var File = {
         let structure = Dungeon.getStructure(file);
         let arr = [];
         for(i in structure){
-            arr[i] = structure[i].identifier;
+            if(structure[i].identifier)
+                arr[i] = structure[i].identifier;
         }
-        FileTools.WriteJSON(__dir__ + "/"+ StructureDir +"/" + file, arr, value);
+        if(structure[i].identifier)
+            FileTools.WriteJSON(__dir__ + "/"+ StructureDir +"/" + file, arr, value);
     }
 };
 var TYPE = {
