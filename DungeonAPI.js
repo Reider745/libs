@@ -207,47 +207,6 @@ var Dungeon = {
             ar.push({id: arr3[0], data: arr3[1], x: x1, y: y1, z: z1});
         }
         return ar;
-    }, 
-    isStructure: function(structure, x, y, z, rotation){
-        let stru = this.getStructure(structure);
-        for(i in stru){
-            let ide = this.getIdentifier(stru[i]);
-            switch(rotation){
-		            	case 0:
-			            	var x1 = ide.x;
-			          		var y1 = ide.y;
-			          		var z1 = ide.z;
-		          			break;
-		          		case 1:
-			            	var x1 = ide.x;
-			          		var y1 = ide.y;
-		          			var z1 = ide.z;
-		          			break;
-	          			case 2:
-			          		var x1 = -ide.x;
-		          			var y1 = ide.y;
-			          		var z1 = ide.z;
-				          	break;
-		          		case 3:
-			          		var x1 = -ide.x;
-			          		var y1 = ide.y;
-	          				var z1 = ide.z;
-			          		break;
-	          		}
-            let xx = x + x1;
-            let yy = y + y1;
-            let zz = z + z1;
-            if(World.getBlock(xx, yy, zz).id==ide.id){
-                if(World.getBlock(xx, yy, zz).data==ide.data){
-                    stru.splice(i, i);
-                }
-            }
-        }
-        if(stru==[]){
-            return true;
-        }else{
-            return false;
-        }
     }
 };
 function DungeonAPI (path){
