@@ -93,19 +93,29 @@ var Dungeon = {
         let arr3 = [];
         for(i in arr){
             let id = this.getIdentifier(arr[i]);
-            arr3.push({x: id.x, y: id.y, z: id.z, id: id.id, data: id.data});
+            arr3.push([id.x,id.y,id.z,{id:id.id, data:id.data}]);
         }
-        FileTools.WriteJSON(path2, arr3, t);
+        let structure = {
+            version: 3,
+            structure: arr3
+        }
+        FileTools.WriteJSON(path2, structure, t);
     }, 
     transferDungeonAPI: function (name1, name2, t){
         let path1 = __dir__ + "/"+ StructureDir +"/" + name1;
-        let arr = FileTools.ReadJSON(path1);
+        let arr = FileTools.ReadJSON(path1).structure;
         let path2 = __dir__ + "/"+ StructureDir +"/" + name2;
         let arr3 = [];
         for(i in arr){
-            let arr2 = arr[i]
-            let id = this.generateionIdentifier(arr2);
-            blockArray.push(id);
+            let arr2 = arr[i];
+            let id = this.generateionIdentifier({
+                id: arr2[3].id,
+                data: arr2[3].data,
+                x: arr2[0],
+                y: arr2[1],
+                z: arr2[2]
+            });
+            arr3.push(id);
         }
         FileTools.WriteJSON(path2, arr3, t);
     }, 
@@ -235,7 +245,7 @@ var Dungeon = {
 };
 function DungeonAPI (path){
     let code = {
-        isSetBlock: function(x, y, z, id, data, identifier){
+        isSetBlock: function(x, y, z, id, data, identifier, packet){
             return true;
         }
     };
@@ -247,11 +257,12 @@ function DungeonAPI (path){
     this.setPath = function (path){
         var pathJson = __dir__ + "/"+ StructureDir +"/" + path;
     }
-    this.setStructure = function (xx, yy, zz, rotation){
+    this.setStructure = function (xx, yy, zz, rotation, packet){
+        packet = packet || {};
         let arr = FileTools.ReadJSON(pathJson);
         let rot = rotation || 0;
         if(code.before)
-            code.before(xx, yy, zz, rot);
+            code.before(xx, yy, zz, rot, packet);
         
         for(i in arr){
             let arr3 = arr[i].split(".");
@@ -286,14 +297,14 @@ function DungeonAPI (path){
             let x = xx + x1;
             let y = yy + y1;
             let z = zz + z1;
-            if(code.isSetBlock(x, y, z, id, data, arr3)){
+            if(code.isSetBlock(x, y, z, id, data, arr[i], packet)){
                     World.setBlock(x, y, z, id, data);
             }
             if(code.setStructure)
-                code.setStructure(x, y, z, id, data, arr3);
+                code.setStructure(x, y, z, id, data, arr[i], packet);
         }
         if(code.after)
-            code.after(xx, yy, zz, rot);
+            code.after(xx, yy, zz, rot, packet);
         
     }
     this.setStructurePro = function (xx, yy, zz, func, rotation){
@@ -335,11 +346,11 @@ function DungeonAPI (path){
             let x = xx + x1;
             let y = yy + y1;
             let z = zz + z1;
-            if(func.isSetBlock(x, y, z, id, data, arr3)){
+            if(func.isSetBlock(x, y, z, id, data, arr[i])){
                     World.setBlock(x, y, z, id, data);
             }
             if(func.setStructure)
-                func.setStructure(x, y, z, id, data, arr3);
+                func.setStructure(x, y, z, id, data, arr[i]);
         }
         if(func.after)
             func.after(xx, yy, zz, rot);
@@ -373,7 +384,7 @@ Callback.addCallback("NativeCommand", function(str){
 				                  let yi = y - origin.y;
 				                  let zi = z - origin.z;
 					                let identifier = Dungeon.isBlock(b.id) + "." + b.data + "." + xi + "." + yi + "." + zi;
-					                if(cmd[4] == "true"){
+					                if(cmd[4] == "false"){
 					                if(World.getBlock(x,y,z).id!=0)
 					                blockArray.push(identifier);
 					                }else{
@@ -390,6 +401,12 @@ Callback.addCallback("NativeCommand", function(str){
             
             Game.message("§2структура сохранена");
             blockArray = [];
+        }
+        if(cmd[1]=="set"){
+            let coords = Entity.getPosition(Player.get());
+            Dungeon.setStructure(cmd[2], coords.x, coords.y, coords.z, 0);
+            Game.prevent();
+            Game.message("§2структура установлена");
         }
     }
 });
@@ -425,10 +442,33 @@ let ItemGenerateAPI = {
         this.deb = value
     }
 };
+function is (container, slot, id, data, count){
+    if(container){
+        if(slot >= 0){
+            if(id){
+                if(data >= 0){
+                    if(count){
+                        return true;
+                    }else{
+                        return false;
+                    }
+                }else{
+                    return false;
+                }
+            }else{
+                return false;
+            }
+        }else{
+            return false;
+        }
+    }else{
+        return false;
+    }
+}
 function ItemGenerate (){
     this.generateion = []
     this.Prototype = {
-        isGenerate: function(x, y, z, random, slot, id, data){
+        isGenerate: function(slot, x, y, z, random, id, data, count){
             return true;
         }
     }
@@ -447,9 +487,10 @@ function ItemGenerate (){
         this.generateion.push({id:id, data:data, random:random, count:count});
     }
     this.setPrototype = function (obj){
-        this.Prototype = obj
+        this.Prototype = obj;
     }
-    this.fillChest = function (x, y, z){
+    this.fillChest = function (x, y, z, packet){
+        packet = packet || {}
         let container = World.getContainer(x, y, z);
         if(container){
             let random = Math.random();
@@ -461,19 +502,21 @@ function ItemGenerate (){
                     count: this.generateion[i].count 
                 };
                 if(this.Prototype.beforeGenerating){
-                    this.Prototype.beforeGenerating(x, y, z, random, slot, item.id, item.data);
+                    this.Prototype.beforeGenerating(x, y, z, random, slot, item.id, item.data, packet);
                 }
                 if(random<this.generateion[i].random){
                     let count = Math.floor(Math.random()*(item.count.min))+item.count.min; 
-                    if(this.Prototype.isGenerate(slot, x, y, z, random, item.id, item.data, count)){
-                        container.setSlot(slot, item.id, count, item.data);
+                    if(this.Prototype.isGenerate(slot, x, y, z, random, item.id, item.data, count, packet)){
+                        if(is(container, slot, item.id, item.data, count)){
+                            container.setSlot(slot, item.id, count, item.data);
+                        }
                     }
                     if(this.Prototype.setFunction)
-                        this.Prototype.setFunction(slot, x, y, z, random, item.id, item.data, count)
+                        this.Prototype.setFunction(slot, x, y, z, random, item.id, item.data, count, packet)
                     slot = Math.random()*27;
                 }
                 if(this.Prototype.afterGenerating){
-                    this.Prototype.afterGenerating(x, y, z, random, slot, item.id, item.data);
+                    this.Prototype.afterGenerating(x, y, z, random, slot, item.id, item.data, packet);
                 } 
             }
         }else if(ItemGenerateAPI.deb == true){
@@ -497,7 +540,9 @@ function ItemGenerate (){
                 if(random<this.generateion[i].random){
                     let count = Math.floor(Math.random()*(item.count.min))+item.count.min; 
                     if(pro.isGenerate(slot, x, y, z, random, item.id, item.data, count)){
-                        container.setSlot(slot, item.id, count, item.data);
+                        if(is(container, slot, item.id, item.data, count)){
+                            container.setSlot(slot, item.id, count, item.data);
+                        }
                     }
                     if(pro.setFunction)
                         pro.setFunction(slot, x, y, z, random, item.id, item.data, count)
@@ -528,7 +573,9 @@ function ItemGenerate (){
                 if(random<this.generateion[i].random){
                     let count = Math.floor(Math.random()*(item.count.min))+item.count.min; 
                     if(this.Prototype.isGenerate(slot, x, y, z, random, item.id, item.data, count)){
-                        container.setSlot(slot, item.id, count, item.data);
+                        if(is(container, slot, item.id, item.data, count)){
+                            container.setSlot(slot, item.id, count, item.data);
+                        }
                     }
                     if(this.Prototype.setFunction)
                         this.Prototype.setFunction(slot, x, y, z, random, item.id, item.data, count)
