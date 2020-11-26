@@ -1,6 +1,6 @@
 LIBRARY({
     name: "DungeonAPI",
-    version: 5, 
+    version: 6, 
     api: "CoreEngine",
 });
 /*
@@ -25,16 +25,6 @@ var DungeonArr = {
             addBlock: function (identifier){
                 let arr = this.structure;
                 arr.push(identifier);
-                this.structure = arr;
-            },
-            removeBlockParameter: function (parameter, value){
-                let arr = this.structure;
-                for(var i in arr){
-                    let obj = this.getIdentifier(arr[i]);
-                    if(obj[parameter] == value){
-                        arr.splice(i, i);
-                    }
-                }
                 this.structure = arr;
             },
             removeBlock: function (identifier){
@@ -83,7 +73,8 @@ var DungeonArr = {
 	          	    }
             },
             save: function (value){
-                let path = __dir__ + "/"+ StructureDir +"/" + this.name;
+                value = value || false;
+                let path = __dir__ + "/"+ StructureDir +"/" + this.name + ".json";
                 FileTools.WriteJSON(path, this.structure, value);
             }
         };
@@ -99,22 +90,11 @@ var Dungeon = {
              }
          }
          FileTools.WriteJSON(path, arr, true);
-    }, 
-    removeBlockParameter: function (structure, parameter, value){
-        let path = __dir__ + "/"+ StructureDir +"/" + structure;
-         let arr = FileTools.ReadJSON(path);
-         for(i in arr){
-             let obj = this.getIdentifier(arr[i]);
-             if(obj[parameter] == value){
-                 arr.splice(i, i);
-             }
-         }
-         FileTools.WriteJSON(path, arr, true);
     },
     addBlockStructure: function (name, identifier){
         let path = __dir__ + "/"+ StructureDir +"/" + name;
         let arr = FileTools.ReadJSON(path);
-        blockArray.push(identifier);
+        arr.push(identifier);
         FileTools.WriteJSON(path, arr, true);
     }, 
     setStructure: function (name, xx, yy, zz, rotation, dimension){
@@ -213,6 +193,7 @@ var Dungeon = {
         return identifie;
     }, 
     copy: function (file, file2, t){
+        t = t || false;
         let path = __dir__ + "/"+ StructureDir +"/" + file;
         let path2 = __dir__ + "/"+ StructureDir +"/" + file2;
         let arr = FileTools.ReadJSON(path);
@@ -331,6 +312,11 @@ function DungeonAPI (path){
     var pathJson = __dir__+ "/" + StructureDir + "/" + path;
     let rota;
     this.setPrototype = function (obj){
+        if(!obj.isSetBlock){
+            obj.isSetBlock = function(x, y, z, id, data, identifier, packet){
+                return true;
+            }
+        }
         code = obj;
     }
     this.setPath = function (path){
@@ -489,6 +475,9 @@ Callback.addCallback("NativeCommand", function(str){
         }
         if(cmd[1]=="set"){
             let coords = Entity.getPosition(Player.get());
+            coords.x = Math.floor(coords.x);
+            coords.z = Math.floor(coords.z);
+            coords.y = Math.floor(coords.y);
             Dungeon.setStructure(cmd[2], coords.x, coords.y, coords.z, 0);
             Game.prevent();
             Game.message("§2структура установлена");
@@ -572,6 +561,11 @@ function ItemGenerate (){
         this.generateion.push({id:id, data:data, random:random, count:count});
     }
     this.setPrototype = function (obj){
+        if(!obj.isGenerate){
+            obj.isGenerate = function(slot, x, y, z, random, id, data, count){
+                return true;
+            }
+        }
         this.Prototype = obj;
     }
     this.fillChest = function (x, y, z, packet){
