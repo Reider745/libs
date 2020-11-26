@@ -17,6 +17,78 @@ function random(max){
     return Math.floor(Math.random()*max);
 }
 let StructureDir = "structure";
+var DungeonArr = {
+    registerStructure: function (name){
+        return {
+            name: name,
+            structure: [],
+            addBlock: function (identifier){
+                let arr = this.structure;
+                arr.push(identifier);
+                this.structure = arr;
+            },
+            removeBlockParameter: function (parameter, value){
+                let arr = this.structure;
+                for(var i in arr){
+                    let obj = this.getIdentifier(arr[i]);
+                    if(obj[parameter] == value){
+                        arr.splice(i, i);
+                    }
+                }
+                this.structure = arr;
+            },
+            removeBlock: function (identifier){
+                let arr = this.structure;
+                for(var i in arr){
+                    if(arr[i] == identifier){
+                        arr.splice(i, i);
+                    }
+                }
+                this.structure = arr;
+            },
+            setStructure: function (xx, yy, zz, rotation, dimension){
+                let arr = this.structure;
+                dimension = dimension || Player.getDimension();
+                let blockSource = BlockSource.getDefaultForDimension(dimension);
+                blockSource = BlockSource.getCurrentWorldGenRegion();
+                let rot = rotation || 0;
+                for(var i in arr){
+                    let obj = Dungeon.getIdentifier(arr[i]);
+                    switch(rot){
+                        	case 0:
+                        	  var x1 = obj.x;
+                        	  var y1 = obj.y;
+                        	  var z1 = obj.z;
+                        	break;
+                        	case 1:
+                        	  var x1 = obj.z;
+                        	  var y1 = obj.y;
+                        	  var z1 = obj.x;
+                        	break;
+                        	case 2:
+                        	  var x1 = -obj.x;
+                        	  var y1 = obj.y;
+                        	  var z1 = obj.z;
+                        	break;
+                        	case 3:
+                        	  var x1 = -obj.z;
+                        	  var y1 = obj.y;
+                        	  var z1 = obj.x;
+                        	break;
+	          	        }
+	          	        let x = xx + x1;
+	          	        let y = yy + y1;
+	          	        let z = zz + z1;
+	          	        blockSource.setBlock(x, y, z, obj.id, obj.data);
+	          	    }
+            },
+            save: function (value){
+                let path = __dir__ + "/"+ StructureDir +"/" + this.name;
+                FileTools.WriteJSON(path, this.structure, value);
+            }
+        };
+    }
+};
 var Dungeon = {
     removeBlockStructure: function (name, identifier){
          let path = __dir__ + "/"+ StructureDir +"/" + name;
@@ -670,3 +742,4 @@ EXPORT("ItemGenerate", ItemGenerate);
 EXPORT("ItemGenerateAPI", ItemGenerateAPI);
 EXPORT("enchantAdd", enchantAdd);
 EXPORT("File", File);
+EXPORT("DungeonArr", DungeonArr);
