@@ -153,24 +153,36 @@ var Dungeon = {
         StructureDir = path;
     }, 
     transferStructureAPI: function(name1, name2, t){
+    	t = t || false;
         let path1 = __dir__ + "/"+ StructureDir +"/" + name1;
         let arr = FileTools.ReadJSON(path1);
         let path2 = __dir__ + "/"+ StructureDir +"/" + name2;
         let arr3 = [];
         for(i in arr){
             let id = this.getIdentifier(arr[i]);
-            arr3.push({x: id.x, y: id.y, z: id.z, id: id.id, data: id.data});
+            arr3.push([id.x,id.y,id.z,{id:id.id, data:id.data}]);
         }
-        FileTools.WriteJSON(path2, arr3, t);
+        let structure = {
+            version: 3,
+            structure: arr3
+        }
+        FileTools.WriteJSON(path2, structure, t);
     }, 
     transferDungeonAPI: function (name1, name2, t){
+    	t = t || false;
         let path1 = __dir__ + "/"+ StructureDir +"/" + name1;
-        let arr = FileTools.ReadJSON(path1);
+        let arr = FileTools.ReadJSON(path1).structure;
         let path2 = __dir__ + "/"+ StructureDir +"/" + name2;
         let arr3 = [];
         for(i in arr){
-            let arr2 = arr[i]
-            let id = this.generateionIdentifier(arr2);
+            let arr2 = arr[i];
+            let id = this.generateionIdentifier({
+                id: arr2[3].id,
+                data: arr2[3].data,
+                x: arr2[0],
+                y: arr2[1],
+                z: arr2[2]
+            });
             arr3.push(id);
         }
         FileTools.WriteJSON(path2, arr3, t);
@@ -199,7 +211,7 @@ var Dungeon = {
         let arr = FileTools.ReadJSON(path);
         FileTools.WriteJSON(path2, arr, t);
     }, 
-    destroyStructure: function (name, xx, yy, zz, rotation){
+    destroyStructure: function (name, xx, yy, zz, rotation, dimension){
         dimension = dimension || Player.getDimension();
         let blockSource = BlockSource.getDefaultForDimension(dimension);
         blockSource = BlockSource.getCurrentWorldGenRegion();
