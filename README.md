@@ -1,6 +1,6 @@
 # libs
 
-### DungeonAPI
+### DungeonAPI 
 Вся документация со стены группы вк, если есть притензии, то это к Илье
 * Dungeon.isStructure(name, x, y, z, rotation, dimension);
 * DungeonArr.isStructure(x, y, z, rotation, dimension);
@@ -166,5 +166,60 @@ return true
 Пример:
 var test = testGenerate.getItem();
 
+### DungeonCore
+
+Структуры
+DungeonCore.path папка а которой хронятся структуры
+DungeonCore.generateIdentifier(obj)
+DungeonCore.getIdentifier(string)
+DungeonCore.getStructure(name)
+DungeonCore.setStructure(name, x, y, z, region)
+DungeonCore.isStructure(name, x, y, z, region)
+DungeonCore.isStructureFull(name, x, y, z, region)
+DungeonCore.destroyStructure(name, x, y, z, region)
+
+функции advanced структуры или модуль DungeonAPI 
+new DungeonCore.advanced(name)
+<advanced>.stru массив структуры
+<advanced>.prot протатип структуры
+<advanced>.setPrototype(obj)
+<advanced>.setStructure(x, y, z, region, packet)
+
+
+вспомогвтельные функции 
+DungeonCore.isObj(obj1, obj2)
+DungeonCore.getId(id)
+DungeonCore.isBlock(id)
+
+
+
+
+Генерация предметов 
+
+ItemGenerate.defaults()
+<defaults>.items
+<defaults>.prot
+<defaults>.setPrototype(obj)
+<defaults>.addItem(id, random, count, data, extra)
+<defaults>.fillChest(x, y, z, region, packet)
+<defaults>.fillChestSid(x, y, z, random, region, packet)
+
+ItemGenerate.advanced()
+<advanced>.items
+<advanced>.prot
+<advanced>.setPrototype(obj)
+<advanced>.addItem(id, random, count, data, extra)
+<advanced>.fillChest(x, y, z, region, packet)
+<advanced>.fillChestSid(x, y, z, random, region, packet)
+
+ItemGenerate.enchantAdd(type, count)
+
+Инструменты 
+Utility.random()
+Utility.gntId(obj)
+Utility.saveAtCoords(name, pos1, pos2, central, value1, value2, region)
+Utility.save(name, x1, y1, z1, x2, y2, z2, c1, c2, c3, central, value1, value2, region)
+Utility.setStruc(name, coords, region)
+Utility.fillCoords(x1, y1, z1, x2, y2, z2, block, region)
 
 
