@@ -1,6 +1,6 @@
 LIBRARY({
     name: "DungeonCore",
-    version: 9, 
+    version: 1, 
     api: "CoreEngine",
 });
 var Dungeon = {
@@ -12,7 +12,7 @@ var Dungeon = {
             return id;
     },
     setPath: function(path){
-        this.path = path;
+        this.path = "/"+path;;
     },
     generateIdentifier: function(obj){
         return Dungeon.isBlock(obj.id) + "." + obj.data + "." + obj.x + "." + obj.y + "." + obj.z;
@@ -184,8 +184,8 @@ function ItemGeneration(){
         this.items.push([id, random, count, data, extra]);
     }
     this.fillChest = function(x, y, z, region, packet){
-        let cont = World.getContainer(x, y, z, region);
         region = region || BlockSource.getCurrentWorldGenRegion();
+        let cont = World.getContainer(x, y, z, region);
         packet = packet || {};
         if(cont){
             this.prot.before({x: x, y: y, z: z}, region, packet)
@@ -193,7 +193,7 @@ function ItemGeneration(){
                 let slot = Math.floor(Math.random()*cont.getSize());
                 let random = Math.random();
                 if(random <= this.items[i][1]){
-                    let count = Math.floor(Math.random()*(this.items[i][2].max))+this.items[i][2].min; 
+                    let count = Math.floor(Math.random()*(this.items[i][2].max-this.items[i][2].min))+this.items[i][2].min; 
                     let item = {
                         id: this.items[i][0],
                         data: this.items[i][3],
@@ -207,17 +207,22 @@ function ItemGeneration(){
         }
     }
     this.fillChestSid = function(x, y, z, random, region, packet){
-        region = region || blockSource.getCurrentWorldGenRegion();
+        region = region || BlockSource.getCurrentWorldGenRegion();
         packet = packet || {};
         random = random || Utility.random();
         let cont = World.getContainer(x, y, z, region);
         if(cont){
             this.prot.before({x: x, y: y, z: z}, region, packet)
             for(let i in this.items){
-                let slot = Math.floor(Math.random()*cont.getSize());
+                let slot = random.nextInt(cont.getSize());
                 let rand = 1 / random.nextInt(1000);
                 if(rand <= this.items[i][1]){
-                    let count = Math.floor((1 / random.nextInt(1000))*(this.items[i][2].max))+this.items[i][2].min; 
+                    let count;
+                    if(this.items[i][2].max-this.items[i][2].min >= 1){
+                        count =  random.nextInt(this.items[i][2].max-this.items[i][2].min)+this.items[i][2].min;
+                    }else{
+                        count =  random.nextInt(this.items[i][2].max);
+                    }
                     let item = {
                         id: this.items[i][0],
                         data: this.items[i][3],
@@ -231,8 +236,98 @@ function ItemGeneration(){
         }
     }
 }
+function ItemGenerationPro(){
+    this.items = []
+    this.prot = {
+        before: function(pos, region, packet){},
+        after: function(pos, region, packet){},
+        isGenerate: function(pos, random, slot, item, region, packet){return true},
+        generate: function(pos, random, slot, item, region, packet){}
+    }
+    this.setPrototype = function(obj){
+        if(!obj.before) obj.before = function(pos, region, packet){}
+        if(!obj.after) obj.after = function(pos, region, packet){}
+        if(!obj.isGenerate) obj.isGenerate = function(pos, random, slot, item, region, packet){return true}
+        if(!obj.generate) obj.generate = function(pos, random, slot, item, region, packet){}
+        this.prot = obj;
+    }
+    this.addItem = function(id, random, count, data, extra){
+        id = id || 0;
+        random = random || 1;
+        count = count || {};
+        count.min = count.min || 1;
+        count.max = count.max || 1;
+        count.slotMax = count.slotMax || 1;
+        count.slotMin = count.slotMin || 1;
+        data = data || 0;
+        extra = extra || null
+        this.items.push([id, random, count, data, extra]);
+    }
+    this.fillChest = function(x, y, z, region, packet){
+        region = region || BlockSource.getCurrentWorldGenRegion();
+        let cont = World.getContainer(x, y, z, region);
+        packet = packet || {};
+        if(cont){
+            this.prot.before({x: x, y: y, z: z}, region, packet)
+            for(let i in this.items){
+                let random = Math.random();
+                if(random <= this.items[i][1]){
+                    for(let a = 0;a<=Math.floor(Math.random()*(this.items[i][2].slotMax-this.items[i][2].slotMin))+this.items[i][2].slotMin;a++){
+                        let slot = Math.floor(Math.random()*cont.getSize());
+                        let count = Math.floor(Math.random()*(this.items[i][2].max-this.items[i][2].min))+this.items[i][2].min; 
+                        let item = {
+                            id: this.items[i][0],
+                            data: this.items[i][3],
+                            extra: this.items[i][4]
+                        };
+                        if(this.prot.isGenerate({x: x, y: y, z: z}, random, slot, item, region, packet)) cont.setSlot(slot, item.id, count, item.data, item.extra);
+                        this.prot.generate({x: x, y: y, z: z}, random, slot, item, region, packet)
+                    }
+                }
+            }
+            this.prot.after({x: x, y: y, z: z}, region, packet)
+        }
+    }
+    this.fillChestSid = function(x, y, z, random, region, packet){
+        region = region || BlockSource.getCurrentWorldGenRegion();
+        let cont = World.getContainer(x, y, z, region);
+        packet = packet || {};
+        if(cont){
+            this.prot.before({x: x, y: y, z: z}, region, packet)
+            for(let i in this.items){
+                let rand = 1 / random.nextInt(1000);
+                if(rand <= this.items[i][1]){
+                    let c;
+                    if(this.items[i][2].slotMax-this.items[i][2].slotMin >= 1){
+                        c = random.nextInt(this.items[i][2].slotMax-this.items[i][2].slotMin)+this.items[i][2].slotMin;
+                    }else{
+                        c = random.nextInt(this.items[i][2].slotMax);
+                    }
+                    for(let a = 0;a<=c;a++){
+                        let slot = random.nextInt(cont.getSize());
+                        let count;
+                        if(this.items[i][2].max-this.items[i][2].min >= 1){
+                           count =  random.nextInt(this.items[i][2].max-this.items[i][2].min)+this.items[i][2].min;
+                        }else{
+                           count =  random.nextInt(this.items[i][2].max);
+                        }
+                        let item = {
+                            id: this.items[i][0],
+                            data: this.items[i][3],
+                            extra: this.items[i][4]
+                        };
+                        if(this.prot.isGenerate({x: x, y: y, z: z}, rand, slot, item, region, packet)) cont.setSlot(slot, item.id, count, item.data, item.extra);
+                        this.prot.generate({x: x, y: y, z: z}, rand, slot, item, region, packet)
+                    }
+                }
+            }
+            this.prot.after({x: x, y: y, z: z}, region, packet)
+        }
+    }
+}
 var ItemGenerate = {
-    advanced: ItemGeneration,
+    defaults: ItemGeneration,
+    advanced: ItemGenerationPro,
     enchantAdd: function (type, count){
         let arr = TYPE[type];
         let extra = new ItemExtraData();
@@ -250,12 +345,26 @@ var ItemGenerate = {
 var Utility = {
     random: function(){
         return new java.util.Random();
-    }
-    gntId: generateIdentifier,
-    setCoords: function(x1, y1, z1, x2, y2, z2, block, data){
-        
     },
-    save: function(name, pos1, pos2, central, value1, value2, region){
+    setStruc: function(name, coords, region){
+        region = region || BlockSource.getCurrentWorldGenRegion();
+        Dungeon.setStructure(name, coords.x, coords.y, coords.z, region)
+    },
+    gntId: Dungeon.generateIdentifier,
+    fillCoords: function(x1, y1, z1, x2, y2, z2, block, region){
+        region = region || blockSource.getCurrentWorldGenRegion();
+        for(x = Math.min(x1, x2); x<=Math.max(x1, x2);x++){
+		         for(z = Math.min(z1, z2); z<=Math.max(z1, z2);z++){
+				          for(y = Math.min(y1, y2); y<=Math.max(y1, y2);y++){
+				              if(!block.states)
+				                  region.setBlock(x, y, z, block.id, block.data);
+				              else
+				                  region.setBlock(x, y, z, new BlockState(block.id, block.states));
+				          }
+				      }
+				  }
+    },
+    saveAtCoords: function(name, pos1, pos2, central, value1, value2, region){
         region = region || BlockSource.getCurrentWorldGenRegion();
         let arr = [];
         for(x = Math.min(pos1.x, pos2.x); x<=Math.max(pos1.x, pos2.x);x++){
@@ -266,7 +375,7 @@ var Utility = {
 				              let yi = y - central.y;
 				              let zi = z - central.z;
 					             let identifier = [Dungeon.isBlock(b.id), b.data + "." + xi + "." + yi + "." + zi, b.getNamedStatesScriptable()];
-					            if(!value1){
+					            if(value1){
 					                if(World.getBlock(x,y,z).id!=0)
 					                    arr.push(identifier);
 					                }else{
@@ -276,6 +385,9 @@ var Utility = {
             }
         } 
         FileTools.WriteJSON(__dir__+Dungeon.path+name+".dc", arr, value2)
+    },
+    save: function(name, x1, y1, z1, x2, y2, z2, c1, c2, c3, value1, value2, region){
+        this.saveAtCoords(name, {x: x1, y: y1, z: z1}, {x: x2, y: y2, z: z2}, {x: c1, y: c2, z: c3}, value1, value2, region)
     }
 };
 
@@ -292,10 +404,10 @@ var coordinates=[{},{}];
 IDRegistry.genItemID("debugToolsV2"); 
 Item.createItem("debugToolsV2", "debug tool", {name: "axe", meta: 0}, {stack: 1, isTech: true});
 Callback.addCallback("ItemUse", function(coords, item, block, isExter, player){ 
-    if(item.id == ItemID.debugTools&&es(player)){ 
+    if(item.id == ItemID.debugToolsV2&&es(player)){ 
 	      origin = coords;
         Game.message("установлен цент структуры");
-    }else if(item.id == ItemID.debugTools&&!es(player)){
+    }else if(item.id == ItemID.debugToolsV2&&!es(player)){
 	      if(!firstClick){
 	          coordinates[1] = coords;
 	          Game.message("second click");
