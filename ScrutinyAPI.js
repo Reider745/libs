@@ -13,9 +13,9 @@ LIBRARY({
     Используя библиотеку вы автоматически соглашаетесь с этими правилами.
     группа - https://vk.com/club186544580
 */
-Saver.addSavesScope("Save.lib.ScrutinyAPI",
+Saver.addSavesScope("Save.lib.ScrutinyAPI."+FileTools.ReadJSON(__dir__+"mod.info").name,
     function read(scope) {
-        //ScrutinyAPI.scrutiny = scope.save || {};
+        if(ScrutinyAPI.save) ScrutinyAPI.scrutiny = scope.save || {};
     },
     function save() {
         return {
@@ -30,59 +30,47 @@ Network.addClientPacket("SAPI.open", function(packetData) {
 var ScrutinyAPI = {
     data: {},
     scrutiny: {},
+    save: true,
+    getStr: function(str, count){
+        let chars = str.split("");
+        let a = 1;
+        for(let i in chars){
+            if(i >= count * a){
+                a++
+                let arr = chars.splice(i, chars.length-1);
+                chars.push("\n");
+                for(let l in arr){
+                    chars.push(arr[l]);
+                }
+            }
+        }
+        let string = "";
+        for(let i in chars){
+            string+=chars[i];
+        }
+        return string;
+    },
     getGuiBook: function(obj){
         let elem = {
             "close": {type: "closeButton", x: 930, y: 10, bitmap: "btn_close", scale: 3}
         };
         if(obj.left){
-        let arr = obj.left;
-        let y = 40;
-        for(let a in arr){
-            arr[a].size = arr[a].size || 20;
-            arr[a].chars = arr[a].chars || 25;
-            let chars = arr[a].text.split("");
-            let textLeft = "";
-            for(let i = 0, c = 1;i < chars.length;i++){
-                textLeft+=chars[i];
-                if(i>=arr[a].chars*c){
-                    c++;
-                    elem["textC"+c+a] = {type: "text", x: 50, y: y, text: textLeft, font: {size: arr[a].size}};
-                    y+=arr[a].size;
-                    textLeft = "";
-                }else if(i == chars.length){
-                    elem["textC"+c+a] = {type: "text", x: 50, y: y, text: textLeft, font: {size: arr[a].size}};
-                }
+            let y=40;
+            for(let i in obj.left){
+                obj.left[i].size = obj.left[i].size || 20;
+                obj.left[i].chars = obj.left[i].chars || Math.floor(310 / (obj.left[i].size / 2));
+                elem["textL"+i] = {type: "text", x: 50, y: y, text: ScrutinyAPI.getStr(obj.left[i].text, obj.left[i].chars), multiline: true, font: {size: obj.left[i].size}};
+                 y+=10+(obj.left[i].size*Math.ceil(obj.left[i].text.split("").length / obj.left[i].chars));
             }
-            if(chars.length <= arr[a].chars){
-                elem["text"+a] = {type: "text", x: 50, y: y, text: arr[a].text, font: {size: arr[a].size}};
-            }
-            y+=20+arr[a].size;
-        }
         }
         if(obj.right){
-        let arr = obj.right;
-        let y = 40;
-        for(let a in arr){
-            arr[a].size = arr[a].size || 20;
-            arr[a].chars = arr[a].chars || 25;
-            let chars = arr[a].text.split("");
-            let textLeft = "";
-            for(let i = 0, c = 1;i < chars.length;i++){
-                textLeft+=chars[i];
-                if(i>=arr[a].chars*c){
-                    c++;
-                    elem["textRC"+c+a] = {type: "text", x: 550, y: y, text: textLeft, font: {size: arr[a].size}};
-                    y+=arr[a].size;
-                    textLeft = "";
-                }else if(i == chars.length){
-                    elem["textC"+c+a] = {type: "text", x: 550, y: y, text: textLeft, font: {size: arr[a].size}};
-                }
+            let y=40;
+            for(let i in obj.right){
+                obj.right[i].size = obj.right[i].size || 20;
+                obj.right[i].chars = obj.right[i].chars || Math.floor(300 / (obj.right[i].size / 2));
+                elem["textR"+i] = {type: "text", x: 550, y: y, text: ScrutinyAPI.getStr(obj.right[i].text, obj.right[i].chars), multiline: true, font: {size: obj.right[i].size}};
+                 y+=10+(obj.right[i].size*Math.ceil(obj.right[i].text.split("").length / obj.right[i].chars));
             }
-            if(chars.length <= arr[a].chars){
-                    elem["textR"+a] = {type: "text", x: 550, y: y, text: arr[a].text, font: {size: arr[a].size}};
-                }
-            y+=20+arr[a].size;
-        }
         }
         return new UI.StandartWindow({
             standart: {
@@ -108,7 +96,7 @@ var ScrutinyAPI = {
         obj.scrutiny = {};
         this.scrutiny[window][name] = {
             player: {}
-        }
+        };
         obj.isVisual = obj.isVisual || function(player, window){
             return true;
         } 
@@ -159,6 +147,14 @@ var ScrutinyAPI = {
         return this.scrutiny[window][tab].player[name];
     },
     giveScrutiny: function(player, window, tab, name){
+        if(!this.scrutiny[window]){
+            this.scrutiny[window] = {};
+        }
+        if(!this.scrutiny[window][tab]){
+            this.scrutiny[window][tab] = {
+                player: {}
+            };
+        }
         this.scrutiny[window][tab].player[name] = true;
     },
     createGui: function(player, name){
