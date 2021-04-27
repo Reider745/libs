@@ -131,6 +131,7 @@ var ScrutinyAPI = {
         obj.x = obj.x || 0;
         obj.y = obj.y+20 || 20;
         this.data[window].tab[tab].scrutiny[name] = obj.item;
+        if(!obj.isVisual) obj.isVisual = [];
          this.data[window].tab[tab].elements["slot"+name+tab] = {
              type: "slot",
              bitmap: obj.bitmap,
@@ -138,6 +139,8 @@ var ScrutinyAPI = {
              y: obj.y, 
              size: obj.size,
              visual: true,
+             isV: obj.isVisual,
+             line: obj.line || [],
              clicker: {
                  onClick: function(position, container, tileEntity, win, canvas, scale){
                      if(ScrutinyAPI.isScrutiny(Player.get(), window, tab, name)){
@@ -151,19 +154,6 @@ var ScrutinyAPI = {
                  }
              }
          };
-         if(obj.line){
-             for(let i in obj.line){
-                 let elem = this.data[window].tab[tab].elements["slot"+obj.line[i]+tab];
-                  this.data[window].tab[tab].drawing.push({
-                     type: "line", 
-                     x1: elem.x + (elem.size / 2), 
-                     y1: elem.y + (elem.size / 2), 
-                     x2: obj.x + (obj.size / 2), 
-                     y2: obj.y + (obj.size / 2),
-                     width: 8
-                 });
-             }
-         }
     },
     isScrutiny: function(player, window, tab, name){
         return this.scrutiny[window][tab].player[name];
@@ -186,6 +176,67 @@ var ScrutinyAPI = {
         for(let a in key){
             let obj = this.data[name].tab[key[a]];
             let keys = Object.keys(obj.scrutiny);
+            let elem = {};
+            let draw = [];
+            let keysElem = Object.keys(obj.elements);
+            for(let i in keysElem){
+                let obj2 = obj.elements[keysElem[i]];
+                let arr = [];
+                for(let e in obj2.isV){
+                    if(this.isScrutiny(player, name, key[a], obj2.isV[e])){
+                        arr.push(obj2.isV[e]);
+                    }
+                    if(JSON.stringify(arr)==JSON.stringify(obj2.isV)){
+                        elem[keysElem[i]] = obj.elements[keysElem[i]];
+                        if(obj2.line){
+                            for(let s in obj2.line){
+                                let el = obj.elements["slot"+obj2.line[s]+key[a]];
+                                draw.push({
+                                    type: "line", 
+                                    x1: el.x + (el.size / 2), 
+                                    y1: el.y + (el.size / 2), 
+                                    x2: obj2.x + (obj2.size / 2), 
+                                    y2: obj2.y + (obj2.size / 2),
+                                    width: 8
+                                });
+                            }
+                        }
+                    }
+                } 
+                if(obj2.isV){
+                    if(obj2.isV.length <= 0){
+                        elem[keysElem[i]] = obj.elements[keysElem[i]];
+                        if(obj2.line){
+                            for(let s in obj2.line){
+                                let e = obj.elements["slot"+obj2.line[s]+key[a]];
+                                draw.push({
+                                    type: "line", 
+                                    x1: e.x + (e.size / 2), 
+                                    y1: e.y + (e.size / 2), 
+                                    x2: obj2.x + (obj2.size / 2), 
+                                    y2: obj2.y + (obj2.size / 2),
+                                    width: 8
+                                });
+                            }
+                        }
+                    } 
+                }else{
+                    elem[keysElem[i]] = obj.elements[keysElem[i]];
+                    if(obj2.line){
+                        for(let s in obj2.line){
+                            let e = obj.elements["slot"+obj2.line[s]+key[a]];
+                            draw.push({
+                                type: "line", 
+                                x1: e.x + (e.size / 2), 
+                                y1: e.y + (e.size / 2), 
+                                x2: obj2.x + (obj2.size / 2), 
+                                y2: obj2.y + (obj2.size / 2),
+                                width: 8
+                            });
+                        }
+                    }
+                }
+            }
             for(let i in keys){
                 if(this.isScrutiny(player, name, key[a], keys[i])){
                     obj.elements["slot"+keys[i]+key[a]].bitmap = obj.scrutiny[keys[i]].b;
@@ -202,8 +253,8 @@ var ScrutinyAPI = {
                         bitmap: obj.imageTab
                     }
                 }, {
-                    drawing: obj.drawing,
-                    elements: obj.elements
+                    drawing: draw,
+                    elements: elem
                 });
             }
         }
