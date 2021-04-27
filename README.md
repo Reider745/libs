@@ -21,7 +21,7 @@
 });
 <tabName - имя вкладки
 
-ScrutinyAPI.addScrutiny(windowName, tabName, ScrutinyName, {
+>ScrutinyAPI.addScrutiny(windowName, tabName, ScrutinyName, {
     x: 130,//местоположения исследования по x
     y: 200,//местоположения исследования по y
     bitmap: gui,//текстура исследования до его выполнения(по умолчанию classic_frame_bg_light_border)
