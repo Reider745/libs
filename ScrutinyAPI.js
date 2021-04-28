@@ -87,7 +87,7 @@ var ScrutinyAPI = {
                 obj.right[i].size = obj.right[i].size || 20;
                 obj.right[i].chars = obj.right[i].chars || Math.floor(310 / (obj.right[i].size / 2));
                 if(obj.right[i].type == "text"){
-                    elem["textL"+i] = {type: "text", x: 550, y: y, text: ScrutinyAPI.getStr(obj.right[i].text, obj.right[i].chars), multiline: true, font: {size: obj.right[i].size, color: obj.right[i].color || android.graphics.Color.rgb(0, 0, 0), cursive: obj.right[i].cursive || false, bold: obj.right[i].bold || false, underline: obj.right[i].underline || false}};
+                    elem["textR"+i] = {type: "text", x: 550, y: y, text: ScrutinyAPI.getStr(obj.right[i].text, obj.right[i].chars), multiline: true, font: {size: obj.right[i].size, color: obj.right[i].color || android.graphics.Color.rgb(0, 0, 0), cursive: obj.right[i].cursive || false, bold: obj.right[i].bold || false, underline: obj.right[i].underline || false}};
                     y+=10+(obj.right[i].size*Math.ceil(obj.right[i].text.split("").length / obj.right[i].chars));
                 }else if(obj.right[i].type == "slot"){
                     let ys = 0;
@@ -97,9 +97,9 @@ var ScrutinyAPI = {
                         obj.right[i].slots[a].item = obj.right[i].slots[a].item || {};
                         obj.right[i].slots[a].item.id = obj.right[i].slots[a].item.id || 1;
                         obj.right[i].slots[a].item.data = obj.right[i].slots[a].item.data || 1;
-                        elem["slotL"+i+a] = {type: "slot", x: 550+x, y: y, bitmap: obj.right[i].slots[a].bitmap||"_default_slot_empty", size: obj.right[i].slots[a].size};
+                        elem["slotR"+i+a] = {type: "slot", x: 550+x, y: y, bitmap: obj.right[i].slots[a].bitmap||"_default_slot_empty", size: obj.right[i].slots[a].size};
                         if(ys <= obj.right[i].slots[a].size) ys = obj.right[i].slots[a].size;
-                        cont.setSlot("slotL"+i+a, obj.right[i].slots[a].item.id, 1, obj.right[i].slots[a].item.data, null);
+                        cont.setSlot("slotR"+i+a, obj.right[i].slots[a].item.id, 1, obj.right[i].slots[a].item.data, null);
                         x+=obj.right[i].slots[a].size;
                     }
                     y+=10+ys;
