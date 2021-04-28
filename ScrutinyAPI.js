@@ -50,17 +50,34 @@ var ScrutinyAPI = {
         }
         return string;
     },
-    getGuiBook: function(obj){
+    getGuiBook: function(obj, cont){
         let elem = {
             "close": {type: "closeButton", x: 930, y: 10, bitmap: "btn_close", scale: 3}
         };
         if(obj.left){
             let y=40;
             for(let i in obj.left){
+                obj.left[i].type = obj.left[i].type || "text";
                 obj.left[i].size = obj.left[i].size || 20;
                 obj.left[i].chars = obj.left[i].chars || Math.floor(310 / (obj.left[i].size / 2));
-                elem["textL"+i] = {type: "text", x: 50, y: y, text: ScrutinyAPI.getStr(obj.left[i].text, obj.left[i].chars), multiline: true, font: {size: obj.left[i].size}};
-                 y+=10+(obj.left[i].size*Math.ceil(obj.left[i].text.split("").length / obj.left[i].chars));
+                if(obj.left[i].type == "text"){
+                    elem["textL"+i] = {type: "text", x: 50, y: y, text: ScrutinyAPI.getStr(obj.left[i].text, obj.left[i].chars), multiline: true, font: {size: obj.left[i].size, color: obj.left[i].color || android.graphics.Color.rgb(0, 0, 0), cursive: obj.left[i].cursive || false, bold: obj.left[i].bold || false, underline: obj.left[i].underline || false}};
+                    y+=10+(obj.left[i].size*Math.ceil(obj.left[i].text.split("").length / obj.left[i].chars));
+                }else if(obj.left[i].type == "slot"){
+                    let ys = 0;
+                    let x = 0;
+                    for(let a in obj.left[i].slots){
+                        obj.left[i].slots[a].size =obj.left[i].slots[a].size || 40; 
+                        obj.left[i].slots[a].item = obj.left[i].slots[a].item || {};
+                        obj.left[i].slots[a].item.id = obj.left[i].slots[a].item.id || 1;
+                        obj.left[i].slots[a].item.data = obj.left[i].slots[a].item.data || 1;
+                        elem["slotL"+i+a] = {type: "slot", x: 50+x, y: y, bitmap: obj.left[i].slots[a].bitmap||"_default_slot_empty", size: obj.left[i].slots[a].size};
+                        if(ys <= obj.left[i].slots[a].size) ys = obj.left[i].slots[a].size;
+                        cont.setSlot("slotL"+i+a, obj.left[i].slots[a].item.id, 1, obj.left[i].slots[a].item.data, null);
+                        x+=obj.left[i].slots[a].size;
+                    }
+                    y+=10+ys;
+                }
             }
         }
         if(obj.right){
@@ -75,7 +92,7 @@ var ScrutinyAPI = {
         return new UI.StandartWindow({
             standart: {
                 background: {
-                   bitmap: "book_background",
+                   bitmap: obj.bitmap || "book_background",
                    color: android.graphics.Color.argb(256, 0, 0, 0),
                 }
             },
@@ -100,6 +117,9 @@ var ScrutinyAPI = {
         obj.isVisual = obj.isVisual || function(player, window){
             return true;
         } 
+        obj.item = obj.item || {};
+        obj.item.id = obj.item.id || 0;
+        obj.item.data = obj.item.data || 0;
         this.data[window].tab[name] = obj;
         if(obj.title){
             obj.elements["title"] = {
@@ -130,11 +150,11 @@ var ScrutinyAPI = {
              isV: obj.isVisual,
              line: obj.line || [],
              clicker: {
-                 onClick: function(position, container, tileEntity, win, canvas, scale){
+                 onClick: function(position, cont, tileEntity, win, canvas, scale){
                      if(ScrutinyAPI.isScrutiny(Player.get(), window, tab, name)){
-                         if(obj.bookPost) container.openAs(ScrutinyAPI.getGuiBook(obj.bookPost));
+                         if(obj.bookPost) cont.openAs(ScrutinyAPI.getGuiBook(obj.bookPost, cont));
                      }else{
-                         if(obj.bookPre) container.openAs(ScrutinyAPI.getGuiBook(obj.bookPre));
+                         if(obj.bookPre) cont.openAs(ScrutinyAPI.getGuiBook(obj.bookPre, cont));
                      }
                  },
                  onLongClick: function(position, container, tileEntity, win, canvas, scale){
@@ -246,7 +266,7 @@ var ScrutinyAPI = {
                         x: -30, 
                         y: -30, 
                         scale: 4.0,
-                        bitmap: obj.imageTab
+                        bitmap: obj.imageTab || "_default_slot_empty"
                     }
                 }, {
                     drawing: draw,
