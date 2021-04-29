@@ -71,7 +71,7 @@ var ScrutinyAPI = {
                         obj.left[i].slots[a].item = obj.left[i].slots[a].item || {};
                         obj.left[i].slots[a].item.id = obj.left[i].slots[a].item.id || 1;
                         obj.left[i].slots[a].item.data = obj.left[i].slots[a].item.data || 1;
-                        elem["slotL"+i+a] = {type: "slot", x: 50+x, y: y, bitmap: obj.left[i].slots[a].bitmap||"_default_slot_empty", size: obj.left[i].slots[a].size};
+                        elem["slotL"+i+a] = {type: "slot", x: 50+x, y: y, bitmap: obj.left[i].slots[a].bitmap||"_default_slot_empty", size: obj.left[i].slots[a].size,visual: true};
                         if(ys <= obj.left[i].slots[a].size) ys = obj.left[i].slots[a].size;
                         cont.setSlot("slotL"+i+a, obj.left[i].slots[a].item.id, 1, obj.left[i].slots[a].item.data, null);
                         x+=obj.left[i].slots[a].size;
@@ -97,7 +97,7 @@ var ScrutinyAPI = {
                         obj.right[i].slots[a].item = obj.right[i].slots[a].item || {};
                         obj.right[i].slots[a].item.id = obj.right[i].slots[a].item.id || 1;
                         obj.right[i].slots[a].item.data = obj.right[i].slots[a].item.data || 1;
-                        elem["slotR"+i+a] = {type: "slot", x: 550+x, y: y, bitmap: obj.right[i].slots[a].bitmap||"_default_slot_empty", size: obj.right[i].slots[a].size};
+                        elem["slotR"+i+a] = {type: "slot", x: 550+x, y: y, bitmap: obj.right[i].slots[a].bitmap||"_default_slot_empty", size: obj.right[i].slots[a].size, visual: true};
                         if(ys <= obj.right[i].slots[a].size) ys = obj.right[i].slots[a].size;
                         cont.setSlot("slotR"+i+a, obj.right[i].slots[a].item.id, 1, obj.right[i].slots[a].item.data, null);
                         x+=obj.right[i].slots[a].size;
@@ -166,6 +166,7 @@ var ScrutinyAPI = {
              visual: true,
              isV: obj.isVisual,
              line: obj.line || [],
+             isDone: obj.isDone || obj.isVisual,
              clicker: {
                  onClick: function(position, cont, tileEntity, win, canvas, scale){
                      if(ScrutinyAPI.isScrutiny(Player.get(), window, tab, name)){
@@ -183,7 +184,8 @@ var ScrutinyAPI = {
     isScrutiny: function(player, window, tab, name){
         return this.scrutiny[window][tab].player[name];
     },
-    giveScrutiny: function(player, window, tab, name){
+    giveScrutiny: function(player, window, tab, name, bool){
+        bool = bool || false;
         if(!this.scrutiny[window]){
             this.scrutiny[window] = {};
         }
@@ -192,7 +194,30 @@ var ScrutinyAPI = {
                 player: {}
             };
         }
-        this.scrutiny[window][tab].player[name] = true;
+        if(bool){
+            let obj = this.data[window].tab[tab].elements["slot"+name+tab];
+            let arr = [];
+            for(let i in obj.isDone){
+                if(typeof obj.isDone[i] == "string"){
+                    if(this.isScrutiny(player, window, tab, obj.isDone[i])){
+                        arr.push(obj.isDone[i]);
+                    }
+                }else{
+                    if(this.isScrutiny(player, window, obj.isDone[i].tab, obj.isDone[i].name)){
+                        arr.push(obj.isDone[i]);
+                    }
+                }
+            }
+            if(JSON.stringify(arr) == JSON.stringify(obj.isDone) && !this.isScrutiny(player, window, tab, name)){
+                this.scrutiny[window][tab].player[name] = true;
+                return true;
+            }else{
+                return false;
+            }
+        }else{
+            this.scrutiny[window][tab].player[name] = true;
+            return true;
+        }
     },
     createGui: function(player, name){
         var UITabbed = new UI.TabbedWindow({
