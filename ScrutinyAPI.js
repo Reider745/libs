@@ -117,11 +117,11 @@ var ScrutinyAPI = {
             elements: elem
         });
     },
-    register: function(name){
-        this.data[name] = {
-            player: {},
-            tab: {},
-        }
+    register: function(name, obj){
+        obj = obj || {};
+        obj.player = {};
+        obj.tab = {};
+        this.data[name] = obj;
         this.scrutiny[name] = {};
     },
     addTab: function(window, name, obj){
@@ -222,14 +222,15 @@ var ScrutinyAPI = {
     createGui: function(player, name){
         var UITabbed = new UI.TabbedWindow({
             location: {
-                width: 650,
-                height: 350,
-                x: 150,
-                y: 50,
+                width: this.data[name].width || 650,
+                height: this.data[name].height || 350,
+                x: this.data[name].x || (500 - ((this.data[name].width||650)/2)),
+                y: this.data[name].y || 50
             },
             elements:{},
             drawing:[]
         });
+        UITabbed.setBlockingBackground(true);
         let key = Object.keys(this.data[name].tab);
         for(let a in key){
             let obj = this.data[name].tab[key[a]];
@@ -307,13 +308,21 @@ var ScrutinyAPI = {
                         type: "image", 
                         x: -30, 
                         y: -30, 
-                        scale: 4.0,
+                        scale: 4,
                         bitmap: obj.imageTab || "_default_slot_empty"
                     }
                 }, {
+                    location: {
+                        width: 0,
+                        height: 0,
+                        x: 150,
+                        y: 50,
+                        scrollY: obj.width || 250,
+                        scrollX: obj.height || 500
+                    },
                     drawing: draw,
                     elements: elem
-                });
+                }, obj.isAlwaysSelected || false);
             }
         }
         return UITabbed;
