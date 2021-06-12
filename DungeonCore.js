@@ -365,6 +365,14 @@ var Utility = {
             region.setBlock(x, y, z, id, data);
         }
     },
+    setSpawnerEntity: function(x, y, z, name, region){
+        region = region || BlockSource.getCurrentWorldGenRegion();
+        if(region.getBlockId(x, y, z) == VanillaBlockID.mob_spawner){
+            let tag = region.getBlockEntity(x, y, z).getCompoundTag();
+            tag.putString("EntityIdentifier", name);
+            region.getBlockEntity(x, y, z).setCompoundTag(tag);
+        }
+    },
     fillCoords: function(x1, y1, z1, x2, y2, z2, block, region){
         region = region || blockSource.getCurrentWorldGenRegion();
         for(x = Math.min(x1, x2); x<=Math.max(x1, x2);x++){
