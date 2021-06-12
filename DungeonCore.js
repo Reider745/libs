@@ -54,7 +54,10 @@ var Dungeon = {
                    x: parseInt(this.stru[i][1].split(".")[1]) + x, 
                    y: parseInt(this.stru[i][1].split(".")[2]) + y, 
                    z: parseInt(this.stru[i][1].split(".")[3]) + z
-               }), region, new BlockState(Dungeon.getId(this.stru[i][0]), this.stru[i][2]), packet))  region.setBlock(parseInt(this.stru[i][1].split(".")[1]) + x, parseInt(this.stru[i][1].split(".")[2]) + y, parseInt(this.stru[i][1].split(".")[3]) + z, new BlockState(Dungeon.getId(this.stru[i][0]), this.stru[i][2]));
+               }), region, new BlockState(Dungeon.getId(this.stru[i][0]), this.stru[i][2]), packet)){
+                   region.setBlock(parseInt(this.stru[i][1].split(".")[1]) + x, parseInt(this.stru[i][1].split(".")[2]) + y, parseInt(this.stru[i][1].split(".")[3]) + z, new BlockState(Dungeon.getId(this.stru[i][0]), this.stru[i][2]));
+                   if(this.stru[i][3]) region.setExtraBlock(parseInt(this.stru[i][1].split(".")[1]) + x, parseInt(this.stru[i][1].split(".")[2]) + y, parseInt(this.stru[i][1].split(".")[3]) + z, new BlockState(Dungeon.getId(this.stru[i][3][0]), this.stru[i][3][1]));
+               }
                this.prot.setBlock(parseInt(this.stru[i][1].split(".")[1]) + x, parseInt(this.stru[i][1].split(".")[2]) + y, parseInt(this.stru[i][1].split(".")[3]) + z, Dungeon.getId(this.stru[i][0]), parseInt(this.stru[i][1].split(".")[0]), Dungeon.generateIdentifier({
                    id: Dungeon.getId(this.stru[i][0]),
                    data: parseInt(this.stru[i][1].split(".")[0]),
@@ -124,6 +127,7 @@ var Dungeon = {
         let stru = FileTools.ReadJSON(__dir__+this.path+name+".dc");
         for(let i in stru){
             region.setBlock(parseInt(stru[i][1].split(".")[1]) + x, parseInt(stru[i][1].split(".")[2]) + y, parseInt(stru[i][1].split(".")[3]) + z, new BlockState(Dungeon.getId(stru[i][0]), stru[i][2]));
+            if(stru[i][3]) region.setExtraBlock(parseInt(stru[i][1].split(".")[1]) + x, parseInt(stru[i][1].split(".")[2]) + y, parseInt(stru[i][1].split(".")[3]) + z, new BlockState(Dungeon.getId(stru[i][3][0]), stru[i][3][1]))
         }
     },
     isBlock: function(id){
@@ -351,6 +355,16 @@ var Utility = {
         Dungeon.setStructure(name, coords.x, coords.y, coords.z, region)
     },
     gntId: Dungeon.generateIdentifier,
+    setBlockWater: function(x, y, z, id, data, region){
+        data = data || 0;
+        region = region || BlockSource.getCurrentWorldGenRegion();
+        if(region.getBlockId(x, y, z) == 9){
+            region.setBlock(x, y, z, id, data);
+            region.setExtraBlock(x, y, z, 9, 0);
+        }else{
+            region.setBlock(x, y, z, id, data);
+        }
+    },
     fillCoords: function(x1, y1, z1, x2, y2, z2, block, region){
         region = region || blockSource.getCurrentWorldGenRegion();
         for(x = Math.min(x1, x2); x<=Math.max(x1, x2);x++){
@@ -374,7 +388,13 @@ var Utility = {
 				              let xi = x - central.x;
 				              let yi = y - central.y;
 				              let zi = z - central.z;
+				              let extraBlock = [];
+				              let eb = BlockSource.getCurrentWorldGenRegion().getExtraBlock(x, y, z);
+				              if(eb.id != 0){
+				                  extraBlock = [Dungeon.isBlock(eb.id), eb.getNamedStatesScriptable()]
+				              }
 					             let identifier = [Dungeon.isBlock(b.id), b.data + "." + xi + "." + yi + "." + zi, b.getNamedStatesScriptable()];
+					             if(extraBlock.length >= 1) identifier.push(extraBlock);
 					            if(value1){
 					                if(World.getBlock(x,y,z).id!=0)
 					                    arr.push(identifier);
@@ -395,7 +415,6 @@ EXPORT("DungeonCore", Dungeon);
 EXPORT("ItemGenerate", ItemGenerate);
 EXPORT("TypeEnchant", TYPE);
 EXPORT("Utility", Utility);
-
 //сохранение структуры
 var firstClick = true;
 var origin = {x:0, y:0, z:0};
@@ -438,7 +457,13 @@ Callback.addCallback("NativeCommand", function(str){
 				                  let xi = x - origin.x;
 				                  let yi = y - origin.y;
 				                  let zi = z - origin.z;
+				                  let extraBlock = [];
+				                  let eb = BlockSource.getCurrentWorldGenRegion().getExtraBlock(x, y, z);
+				                  if(eb.id != 0){
+				                      extraBlock = [Dungeon.isBlock(eb.id), eb.getNamedStatesScriptable()]
+				                  }
 					                 let identifier = [Dungeon.isBlock(b.id), b.data + "." + xi + "." + yi + "." + zi, b.getNamedStatesScriptable()];
+					                 if(extraBlock.length >= 1) identifier.push(extraBlock);
 					                if(cmd[4] == "false"){
 					                if(World.getBlock(x,y,z).id!=0) blockArray.push(identifier);
 					                }else{
