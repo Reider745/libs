@@ -1,6 +1,6 @@
 LIBRARY({
     name: "DungeonCore",
-    version: 1, 
+    version: 2, 
     api: "CoreEngine",
 });
 var Dungeon = {
