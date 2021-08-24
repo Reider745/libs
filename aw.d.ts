@@ -69,6 +69,9 @@ interface ScrollDecor {
 
 }
 declare class AncientWonders {
+    /** 
+     * все классы и их параметы
+    */
     customParameter: CustomParameters;
     isParametersFunc: {[key: string]:{[key: string]:{is(player:number, data: ClassData, obj: ClassData, bonus: ClassData, i: number, name: string), message(player:number, data: ClassData, obj: ClassData, bonus: ClassData, i: number, name: string)}}}
     registerClass(data: ClassRegister);
@@ -176,6 +179,134 @@ declare class RenderAPI {
     setTransmitter(id: number);
     serEmpty(id: number);
 }
+/**
+ * java класс
+ */
+declare class BlockPos {
+    x: number;
+    y: number;
+    z: number;
+}
+declare class SingularityAPI {
+    /**
+     * 
+     * @param name тип блока
+     * @param x кордината блока
+     * @param y кордината блока
+     * @param z кордината блока
+     * @param radius радиус поиска
+     * @param region регион
+     * @param noyBlock список блоков которые не будут находится, "x.y.z"
+     */
+    getOutputBlock(name: string, x: number, y: number, z: number, radius: number, region: BlockSource, noyBlock: string[])
+    /**
+     * 
+     * @param name тип блока
+     * @param x кордината блока
+     * @param y кордината блока
+     * @param z кордината блока
+     * @param radius радиус поиска
+     * @param region регион
+     * @param noyBlock список блоков которые не будут находится, "x.y.z"
+     */
+    getInputBlock(name: string, x: number, y: number, z: number, radius: number, region: BlockSource, noyBlock: string[])
+    /**
+     * @param id id блока
+     * @param name тип блока
+     * @param value 
+     */
+    setBlockOutputName(id: number, name: string, value: Boolean)
+    /**
+     * @param id id блока
+     * @param name тип блока
+     * @param value 
+     */
+    setBlockInputName(id: number, name: string, value: Boolean)
+    transfersBlock(tileEntity, tileEntity2, value: number, func: () => void)
+    transfers(tileEntity, tileEntity2: any[], value: number, func: () => void)
+}
+interface ItemGenerateProt {
+    isGenerate(slot, x, y, z, random, id, data, count, packet);
+    setFunction(slot, x, y, z, random, id, data, count, packet);
+    beforeGenerating(x, y, z, random, id, data, count, packet);
+    afterGenerating(x, y, z, random, id, data, count, packet);
+}
+declare class ItemGenerate {
+    generation: any[];
+    Prototype: ItemGenerateProt;
+    setPrototype(obj:ItemGenerateProt);
+    addItem(id: number, random: number, count?: {min?: number, max?: number}, data?: number);
+    fillChest(x: number, y: number, z: number, dimension: number, packet: any);
+    fillChestSit(x: number, y: number, z: number, dimension: number, packet: any);
+    setItems(arr: any[]);
+
+}
+declare class Mp {
+    spawnParticle(type: number, x: number, y: number, z: number, vx?: number, vy?: number, vz?: number, ax?: number, ay?: number, az?: number)
+}
+declare class PlayerAC {
+    message(player: number, text: string);
+    setFly(player: number, value: boolean);
+}
+interface RegEffect {
+    id: number;
+    tick(ent: number, time: number, level: number);
+    over(ent: number, level: number);
+}
+declare class EffectAPI {
+    register(obj: RegEffect)
+    clear(ent: number, id: string | number)
+    add(ent: number, id: string, time: number, level: number)
+    clearAll(ent: number)
+    getEntity(ent: number)
+}
+declare class PotionAPI {
+
+}
+declare class ParticlesAPI {
+    
+}
+interface BookScrutintext {
+    type: "text",
+    text: string,
+    size: number
+}
+interface BookScrutinSlot {
+    type: "slot",
+    slots: {size: number, item: ItemInstance}[]
+}
+type BookScrutinyElements = BookScrutintext | BookScrutinSlot;
+interface BookScrutiny {
+    left: BookScrutinyElements[]
+    right: BookScrutinyElements[]
+}
+declare class ScrutinyAPI {
+    register(name: string, obj?: any);
+    addTab(window: string, name: string, obj: {
+        title: string,
+        isVisual(player: number, window: string): Boolean;
+        imageTab: string;
+    });
+    addScrutiny(window: string, tab: string, name: string, obj: {
+        x: number,
+        y: number,
+        size: number,
+        item: ItemInstance,
+        line: string[],
+        isDone: string[],
+        isVisual: string[],
+        bookPre: BookScrutiny,
+        bookPost: BookScrutiny
+    })
+}
+interface EntityPrototype {
+    tick(ent: number);
+    damage(attacker: number, ent: number, damageValue: number, damageType: number, someBool1: Boolean, someBool2: Boolean);
+}
+declare class EntityReg {
+    setPrototype(id: string, obj: EntityPrototype);
+    getPrototype(id: string): EntityPrototype;
+}
 
 declare class APIAW {
     AncientWonders: AncientWonders;
@@ -184,18 +315,40 @@ declare class APIAW {
     RitualAPI: RitualAPI;
     BookAPI: BookAPI;
     TranslationLoad: TranslationLoad;
-    ItemGenerate: any;
-    ItemGenerate2: any;
+    SingularityAPI: SingularityAPI;
+    PotionAPI: PotionAPI;
+    ItemGenerate: ItemGenerate;
+    ItemGenerate2: ItemGenerate;
     Render: RenderAPI;
-    ParticlesAPI: any;
-    Mp: any;
-    PlayerAC: any;
+    ParticlesAPI: ParticlesAPI;
+    ScrutinyAPI: ScrutinyAPI;
+    Mp: Mp;
+    PlayerAC: PlayerAC;
     SoundManager: any;
-    EffectAPI: any;
+    EffectAPI: EffectAPI;
     Bag: any;
+    EntityReg: EntityReg;
     addScrut(window: string, tab: string, name: string, nameItem: string);
     delItem(player: number, item: ItemInstance);
     setTimeout(func: () => void, tick: number);
     requireGlobal(command: string);
-    versionAPI: 6;
+    AW: {
+        typeDamage: {
+            magic: "magic",
+            dead: "dead"
+        },
+        srollEvent: {
+            useBlock: number,
+            usePlayer: number,
+            useMob: number
+        },
+        creativeGroup: {
+            rune: "rune",
+            wand: "wand",
+            eventSroll: "events",
+            srolls: "sroll",
+            decorSroll: "decor"
+        }
+    }
+    versionAPI: 7;
 }
