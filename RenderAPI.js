@@ -70,6 +70,9 @@ let RenderAPI = {
 			model.setBoxes(JSON.parse(JSON.stringify(boxes)));
 			return model;
 		}
+		this.getRenderMesh = function(){
+			return RenderAPI.convertModel(this.getBlockRender());
+		}
 	},
 	ModelAnimation(){
 		let time = 40;
@@ -293,6 +296,20 @@ let RenderAPI = {
 				end: obj.end || function(){},
 			}
 		}
+	},
+	convertModel(model){
+		return ItemModel.newStandalone().setModel(model).getItemRenderMesh(1, false);
+	},
+	meshCopy(org, mesh){
+		mesh = mesh || new RenderMesh();
+		let arr = org.getReadOnlyVertexData().vertices;
+		uvs = org.getReadOnlyVertexData().uvs;
+		size = (arr.length / 3);
+		for(let i = 0;i < size;i++){
+			mesh.addVertex(arr[i*3], arr[(i*3)+1], arr[(i*3)+2], uvs[(i*2)], uvs[(i*2)+1]);
+			mesh.setNormal(arr[i*3], arr[(i*3)+1], arr[(i*3)+2])
+		}
+		return mesh;
 	}
 };
 /*BlockRenderer.enableCoordMapping(98, -1, new RenderAPI.Model().addBoxByBlock(null, 0, 0, 0, .5, .5, .5).getICRenderModel())
@@ -306,4 +323,4 @@ animation.setTime(100);
 Callback.addCallback("ItemUse", function(coords){
 	animation.play(coords.x,coords.y,coords.z);
 });*/
-EXPORT("RenderAPI", RenderAPI);
+EXPORT("RenderUtil", RenderAPI);
