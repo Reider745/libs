@@ -8,16 +8,16 @@ ScrutinyAPI также используется в моде Ancient Wonders
 P.S будет идти речь про ScrutinyAPI_v2
 Базовые функции библиотеки
 
-сделает новое окно
-** ScrutinyAPI.register(name, obj) **
-+Параметры 
-  +name - имя окна
-  +obj - объект описания окна
-    +scale?: 3, 
-    +frame?: имя рамки, 
-    +default_tab?: имя вкладки по умолчанию,
-    +default_bitmap?: имя рамки изучения,
-    +default_bitmap_click?: имя изученного изучения 
+создать новое окно
+**ScrutinyAPI.register(name, obj)**
++ Параметры 
+  + name - имя окна
+  + obj - объект описания окна
+    + scale?: 3, 
+    + frame?: имя рамки, 
+    + default_tab?: имя вкладки по умолчанию,
+    + default_bitmap?: имя рамки изучения,
+    + default_bitmap_click?: имя изученного изучения 
   
 добавит новую вкладку 
 ** ScrutinyAPI.setTab(window, tab, obj) **
