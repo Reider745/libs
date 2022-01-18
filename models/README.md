@@ -54,11 +54,11 @@ let model = new RenderAPI.Model().addBoxByBlock(null, 0, 0, 0, .5, .5, .5);
 ```
 
 включаем изменение модели на кординатах для блока
-```
+```js
 BlockRenderer.enableCoordMapping(98, -1, model.getICRenderModel());
 ```
 создаём простую анимацию
-```
+```js
 let animation = new RenderAPI.Animation(model, {
 	"25": new RenderAPI.Model().addBoxByBlock(null, 0, 0, .5, .5, .5, 1),
 	"50": new RenderAPI.Model().addBoxByBlock(null, .5, 0, .5, 1, .5, 1),
@@ -67,11 +67,11 @@ let animation = new RenderAPI.Animation(model, {
 });
 ```
 устанавливаем время воспроизведения анимации 
-```
+```js
 animation.setTime(100);
 ```
 проигроваем анимацию, при клики на блок
-```
+```js
 Callback.addCallback("ItemUse", function(coords){
 	animation.play(coords.x,coords.y,coords.z);
 });

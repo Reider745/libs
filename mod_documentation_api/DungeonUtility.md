@@ -120,7 +120,7 @@ Callback.addCallback("StructureLoad", function(){
 
 #Примеры
 
-```
+```js
 ModAPI.addAPICallback("DungeonUtility", function(api){
   //загрузка структуры 
 	api.StructureLoader.load(__dir__+"/Test.struct", "test");
