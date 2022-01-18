@@ -8,8 +8,8 @@
     Используя библиотеку вы автоматически соглашаетесь с этими правилами.
 */
 LIBRARY({
-	name: "RenderAPI",
-	version: 2,
+	name: "RenderUtil",
+	version: 3,
 	shared: true,
 	api: "CoreEngine"
 });
