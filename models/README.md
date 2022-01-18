@@ -49,7 +49,7 @@ RenderUtil - библиотека для создания моделей.
 
 ## Пример
 создаём модель
-```
+```js
 let model = new RenderAPI.Model().addBoxByBlock(null, 0, 0, 0, .5, .5, .5);
 ```
 
