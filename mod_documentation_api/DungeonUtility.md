@@ -134,13 +134,17 @@ Dungeon Utility - мод библиотека, для создания стру�
 
 ## Новые кэлбэки 
 перед загрузки структур
+```js
 Callback.addCallback("StructurePreLoad", function(){
   
 });
+```
 после загрузки структур
+```js
 Callback.addCallback("StructureLoad", function(){
   
 });
+```
 
 # Примеры
 
@@ -188,8 +192,7 @@ ModAPI.addAPICallback("DungeonUtility", function(api){
   let Test = new api.Structure.advanced("test");
   
   //создание прототипа структуры
-  Test.setProt(new api.PrototypeJS(
-function(original_pos, data, region, packet){
+  Test.setProt(new api.PrototypeJS(function(original_pos, data, region, packet){
       //с 50% шансов устанавливаем блок
       return Math.random() <= .5;
     }, function(pos, data, region, packet){
