@@ -1,3 +1,9 @@
+LIBRARY({
+  name: "ScrutinyAPI",
+  version: 3,
+  shared: true,
+  api: "CoreEngine"
+});
 /*
 Автор: Reider ___
 Внимание! Запрещено:
@@ -8,12 +14,6 @@
     Используя библиотеку вы автоматически соглашаетесь с этими правилами.
     группа - https://vk.com/club186544580
 */
-LIBRARY({
-	name: "ScrutinyAPI",
-	version: 2,
-	shared: true,
-	api: "CoreEngine"
-});
 Saver.addSavesScope("Save.lib.ScrutinyAPI",
     function read(scope) {
         if(ScrutinyAPI.save) ScrutinyAPI_V2.scrutiny = scope.save || {};
@@ -24,6 +24,40 @@ Saver.addSavesScope("Save.lib.ScrutinyAPI",
         };
     }
 );
+let setTimeout = function(func, ticks, obj) {
+  obj = obj || {}
+  var upd = {
+    ticks: 0,
+    update: function() {
+      this.ticks++
+      if (this.ticks >= ticks) {
+        func(obj);
+        this.remove = true
+      }
+    }
+  };
+  Updatable.addUpdatable(upd);
+}
+let TranslationLoad = {
+  create(key) {
+    return {
+      text: Translation.translate(key),
+      set(name, value) {
+        this.text = this.text.replace("{" + name + "}", value)
+      },
+      get() {
+        return this.text;
+      }
+    }
+  },
+  get(key, arr) {
+    let str = this.create(key);
+    for (let i in arr)
+      str.set(arr[i][0], arr[i][1]);
+    return str.get();
+  },
+};
+
 Callback.addCallback("LevelLeft", function () {
 	ScrutinyAPI_V2.scrutiny = {};
 });
@@ -43,7 +77,6 @@ let ScrutinyWindow = {
 	size_y: sh - (this.top + this.bottom),
 	height: 540
 };
-
 let ScrutinyAPI_V2 = {
 	windows: {},
 	scrutiny: {},
@@ -89,6 +122,13 @@ let ScrutinyAPI_V2 = {
 		obj.isDone=obj.isDone||[];
 		obj.bitmap=obj.bitmap||this.windows[window].default_bitmap;
 		obj.bitmap_click=obj.bitmap_click||this.windows[window].default_bitmap_click;
+		if(this.windows[window].tabs[tab].auto_size){
+			if(this.windows[window].tabs[tab].height < obj.y / 2 + obj.size + 20)
+				this.windows[window].tabs[tab].height = obj.y / 2 + obj.size + 20;
+			
+			if(this.windows[window].tabs[tab].width < obj.x / 2 + obj.size + 20)
+				this.windows[window].tabs[tab].width = obj.x / 2 + obj.size + 20;
+		}
 		this.windows[window].tabs[tab].scrutinys[scrutiny]=obj;
 	},
 	isScrutiny(player, window, tab, name){
@@ -146,6 +186,7 @@ let ScrutinyAPI_V2 = {
 			}
 		}
 		this.scrutiny[window][tab].player[player][name] = true;
+		Callback.invokeCallback("Scrutiny_give", window, tab, name, player);
 		Network.sendToAllClients("SC.API.give", {
 			value: ScrutinyAPI_V2.scrutiny,
 			server: parseInt(""+Player.get())
@@ -169,6 +210,13 @@ let ScrutinyAPI_V2 = {
 			string+=chars[i];
 		return string;
 	},
+	elements: {},
+	registerDrawingElement(name, func){
+		this.elements[name] = func;
+	},
+	useDrawingElement(name, obj, x, y, container, i, pos){
+		return this.elements[name](obj, x, y, container, i, pos);
+	},
 	getGuiBook(name, player, content, group, container, id, obj){
 		let elements = {
 			"close": {type: "button", x: 900, y: 0, bitmap: "classic_close_button", scale: 5, clicker: {
@@ -184,23 +232,11 @@ let ScrutinyAPI_V2 = {
 			let elems = obj[books[a]]
 			let y = 25;
 			for(let i in elems){
-				let data = elems[i]
-				if((data.type||"text")=="text"){
-					elements["elem"+i+books[a]]={type:"text", text:ScrutinyAPI_V2.getStr(data.text||"",data.chars||Math.floor(310 / (data.size / 2)))||"", size: data.size||25, x: start_x, y: y, multiline: true}
-					y+=10+((data.size||25)*Math.ceil(data.text.split("").length / (data.chars||Math.floor(310 / (data.size / 2)))))
-				}else if((data.type||"")=="slots"||(data.type||"")=="slot"){
-					if(data.slots);
-						data.items = []
-					for(let ii in data.slots){
-						data.size = data.slots[ii].size;
-						data.items.push(data.slots[ii].item)
-					}
-					for(let ii in data.items){
-						elements["elem"+i+books[a]+ii] = {type:"slot", bitmap:data.bitmap||"_default_slot_empty", x: start_x+((data.size||30)*ii), y: y, size: data.size||30}
-						container.setSlot("elem"+i+books[a]+ii, data.items[ii].id || 0, 1, data.items[ii].data || 0);
-					}
-					y+=data.size||30;
-				}
+				let data = elems[i];
+				let obj = ScrutinyAPI_V2.useDrawingElement(data.type||"text", data, start_x, y, container, i, books[a]);
+				y+=obj.y;
+				for(let ii in obj.elem)
+					elements["elem"+i+books[a]+ii] = obj.elem[ii];
 			}
 			if(y_max < y)
 				y_max = y;
@@ -225,6 +261,16 @@ let ScrutinyAPI_V2 = {
 			elements: elements
 		}))
 	},
+	client_open_tab: "",
+	updateIcon(obj){
+		if(ScrutinyAPI_V2.client_open_tab == obj.tab.name){
+			obj.i++;
+			if(obj.i >= obj.icon.ids.length)
+				obj.i = 0;
+			obj.container.setSlot(obj.name_slot, obj.icon.ids[obj.i][0], 1, obj.icon.ids[obj.i][1]);
+			setTimeout(ScrutinyAPI_V2.updateIcon, obj.icon.time||10, obj);
+		}
+	},
 	getGuiTab(name, player, content, tab, group, container){
 		content.elements = {};
 		content.drawing = [
@@ -237,24 +283,35 @@ let ScrutinyAPI_V2 = {
 				continue;
 			content.elements["scrutiny_"+scrutiny.scrutiny+tab.name] = {type: "slot", x: scrutiny.x, y: scrutiny.y, visual: true, bitmap: this.isScrutiny(player, name, tab.name, scrutiny.scrutiny) ? scrutiny.bitmap_click : scrutiny.bitmap, size: scrutiny.size, clicker: {
 				onClick(){
-					if(ScrutinyAPI_V2.isScrutiny(player, name, tab.name, scrutiny.scrutiny)){
-						if(scrutiny.book_post)
-							ScrutinyAPI_V2.getGuiBook(name, player, content, group, container, tab.name, scrutiny.book_post)
-					}else{
-						if(scrutiny.book_pre)
-							ScrutinyAPI_V2.getGuiBook(name, player, content, group, container, tab.name, scrutiny.book_pre)
+					if(ScrutinyAPI_V2.isScrutiny(player, name, tab.name, scrutiny.scrutiny) && scrutiny.book_post){
+						ScrutinyAPI_V2.getGuiBook(name, player, content, group, container, tab.name, scrutiny.book_post)
+					}else if(scrutiny.book_pre){
+						ScrutinyAPI_V2.getGuiBook(name, player, content, group, container, tab.name, scrutiny.book_pre)
 					}
 				},
 				onLongClick(){
-					alert(scrutiny.name);
+					alert(Translation.translate(scrutiny.name));
 				}
 			}}
-			container.setSlot("scrutiny_"+scrutiny.scrutiny+tab.name, scrutiny.icon.id, 1, scrutiny.icon.data)
+			let icon = scrutiny.icon;
+			let name_slot = "scrutiny_"+scrutiny.scrutiny+tab.name;
+			if(icon.ids){
+				container.setSlot(name_slot, icon.ids[0][0], 1, icon.ids[0][1]);
+				let i = 0;
+				setTimeout(ScrutinyAPI_V2.updateIcon, icon.time||10, {
+					tab: tab,
+					icon: icon,
+					name_slot: name_slot,
+					i: i,
+					container: container
+				});
+			}else
+				container.setSlot(name_slot, icon.id, 1, icon.data);
 			for(let i in scrutiny.lines){
 				let _scrutiny = this.windows[name].tabs[tab.name].scrutinys[scrutiny.lines[i]]
 				if(!this.isVisual(name,_scrutiny.isVisual,player))
 					continue;
-				content.drawing.push({type: "line", width: 10, x1: _scrutiny.x+(_scrutiny.size/2), y1: _scrutiny.y+(_scrutiny.size/2), x2: scrutiny.x+(scrutiny.size/2), y2: scrutiny.y+(scrutiny.size/2)})
+				content.drawing.push({type: "line", width: 10, x1: _scrutiny.x+(_scrutiny.size/2), y1: _scrutiny.y+(_scrutiny.size/2), x2: scrutiny.x+(scrutiny.size/2), y2: scrutiny.y+(scrutiny.size/2), color: scrutiny.line_color || android.graphics.Color.rgb(0, 0, 0)})
 			}
 		}
 		return content;
@@ -274,7 +331,7 @@ let ScrutinyAPI_V2 = {
 				{type: "color", color: android.graphics.Color.argb(0, 0, 0, 0)}
 			],
 			elements: {
-				"close": {type: "close_button", x: 850, y: -25, bitmap: "classic_close_button", scale: 5}
+				"close": {type: "close_button", x: 850, y: -25, bitmap: ScrutinyAPI_V2.windows[window_name].close_bitmap||"classic_close_button", scale: 5}
 			}
 		});
 		let tabs = Object.keys(this.windows[window_name].tabs);
@@ -298,6 +355,9 @@ let ScrutinyAPI_V2 = {
 			}
 		});
 		let content = window.getContent();
+		let index = content.drawing.length;
+		content.drawing.push({type: "frame", bitmap: this.windows[window_name].frame, x: 75, y: -2, z: -1, scale: this.windows[window_name].scale, width: 0, height: 50});
+		//content.drawing.push({type: "frame", bitmap: this.windows[window_name].frame, x: 855, y: -2, z: -1, scale: this.windows[window_name].scale, width: 60, height: 50});
 		for(let i in tabs){
 			let tab = this.windows[window_name].tabs[tabs[i]];
 			if(!tab.isVisual(player, window_name))
@@ -308,8 +368,10 @@ let ScrutinyAPI_V2 = {
 					window_tab.getLocation().setScroll(tab.width, tab.height);
 					window_tab.updateScrollDimensions();
 					window_tab.setContent(ScrutinyAPI_V2.getGuiTab(window_name, player, window_tab.getContent(), tab, group, container))
-					content.elements["tab_title"] = {type: "text", x: 90, y: 0, text: tab.title}
-					window.setContent(content)
+					content.drawing[index].width = (tab.title.split("").length*15)+25;
+					content.elements["tab_title"] = {type: "text", x: 90, y: 8, text: Translation.translate(tab.title), font: {color: tab.title_color || android.graphics.Color.rgb(1, 1, 1)}}
+					window.setContent(content);
+					ScrutinyAPI_V2.client_open_tab = tab.name;
 				}
 			}
 			if(this.windows[window_name].default_tab == tabs[i] || id == tabs[i])
@@ -370,10 +432,58 @@ let ScrutinyAPI_V2 = {
 			client.send("SC.API.open", {name:name,player:player,id:id})
 	}
 };
+ScrutinyAPI_V2.registerDrawingElement("text", function(obj, x, y){
+	let text = Translation.translate(obj.text||"");
+	return {
+		y: 10+((obj.size||25)*Math.ceil(text.split("").length / (obj.chars||Math.floor(310 / (obj.size / 2))))),
+		elem: [{type:"text", text: ScrutinyAPI_V2.getStr(text, obj.chars || Math.floor(310 / (obj.size / 2)))||"", size: obj.size||25, x: x, y: y, multiline: true}]
+	};
+});
+ScrutinyAPI_V2.registerDrawingElement("slots", function(obj, x, y, container, i, pos){
+	let slots = []
+	if(obj.slots)
+		obj.items = [];
+	for(let ii in obj.slots){
+		obj.size = obj.slots[ii].size;
+		obj.items.push(obj.slots[ii].item)
+	}
+	for(let ii in obj.items){
+		slots.push({type: "slot", bitmap: obj.bitmap||"_default_slot_empty", x: x+((obj.size||30)*ii), y: y, size: obj.size||30, visual: true});
+		container.setSlot("elem"+i+pos+((parseInt(ii)||0)+(obj.i||0)), obj.items[ii].id || 0, 1, obj.items[ii].data || 0);
+	}
+	return {
+		y: obj.size||30,
+		elem: slots
+	};
+});
+ScrutinyAPI_V2.registerDrawingElement("slot", function(obj, x, y, container, i, pos){
+	return ScrutinyAPI_V2.useDrawingElement("slots", obj, x, y, container, i, pos);
+});
+ScrutinyAPI_V2.registerDrawingElement("custom", function(obj, x, y, container, i, pos){
+	return obj.getElemet(x, y, container, i, pos);
+});
+ScrutinyAPI_V2.registerDrawingElement("dynamic", function(obj, x, y, container, i, pos){
+	let elems = [];
+	let max = 0;
+	let arr = obj.getElemet(x, y, container, i, pos);
+	for(let ii in arr){
+		obj.i = elems.length;
+		let data = ScrutinyAPI_V2.useDrawingElement(arr[ii].type||"text", arr[ii], x, y+max, container, i, pos);
+		max += data.y;
+		for(let a in data.elem)
+			elems.push(data.elem[a]);
+	}
+	return {
+		y: max,
+		elem: elems
+	};
+});
+
 var JAVA_ANIMATOR = android.animation.ValueAnimator;
 var JAVA_HANDLER = android.os.Handler;
 var LOOPER_THREAD = android.os.Looper;
 var JAVA_HANDLER_THREAD = new JAVA_HANDLER(LOOPER_THREAD.getMainLooper());
+
 function createAnimation(_duration, _updateFunc){
 	let animation = JAVA_ANIMATOR.ofFloat([0,1]);
 	animation.setDuration(_duration);
@@ -497,6 +607,7 @@ let ScrutinyAPI = {
 			size: obj.size,
 			icon: obj.item,
 			lines: obj.line,
+			line_color: obj.line_color,
 			isDone: (function(arr2){
 				let arr = [];
 				for(let i in arr2){
@@ -525,6 +636,108 @@ let ScrutinyAPI = {
 		ScrutinyAPI_V2.open(player, name)
 	}
 };
+
+/*ScrutinyAPI_V2.register("test", {
+	scale: 2.5,
+	default_tab: "test0",
+	frame: "frame"
+});
+ScrutinyAPI_V2.setTab("test", "test0", {
+	id: 0,
+	width: 700,
+	title: "test 0",
+	icon: 1
+})
+ScrutinyAPI_V2.setTab("test", "test2", {
+	id: 2,
+	width: 700,
+	title: "test 2",
+	icon: 5,
+	isVisual(player, window_name){
+		return ScrutinyAPI_V2.isScrutiny(player, window_name, "test0", "test");
+	}
+})
+ScrutinyAPI_V2.setScrutiny("test", "test2", "test", {
+	name: "test scrutiny",
+	size: 100,
+	x: 100,
+	y: 100,
+	icon: {
+		id: 5,
+		data: 1
+	}
+})
+ScrutinyAPI_V2.setScrutiny("test", "test0", "test", {
+	name: "test scrutiny",
+	size: 100,
+	x: 100,
+	y: 100,
+	icon: {
+		id: 265
+	}
+})
+ScrutinyAPI_V2.setScrutiny("test", "test0", "test2", {
+	name: "test scrutiny",
+	size: 100,
+	x: 300,
+	y: 100,
+	icon: {
+		id: 263
+	}
+})
+ScrutinyAPI_V2.setScrutiny("test", "test0", "test3", {
+	name: "test scrutiny",
+	size: 100,
+	x: 150,
+	y: 300,
+	lines: ["test", "test2"],
+	isDone: [["test0", "test2"], ["test0", "test"]],
+	isVisual: [["test0", "test2"]],
+	icon: {
+		id: 264
+	},
+	book_pre: {
+		left: [
+			{type: "text", text: "Жопа", size: 40}
+		],
+		right: [
+			{type: "text", text: "Жопа 2", size: 40},
+			{type: "slots", items: [{id:263},{id:264}], size: 40}
+		]
+	},
+	book_post: {
+		left: [
+			{type: "text", text: "Уже не жопа", size: 30},
+			{type: "text", text: "Какой-то длинный текст, Какой-то длинный текст, Какой-то длинный текст, Какой-то длинный текст.", size: 25},
+			{type: "text", text: "Какой-то длинный текст, Какой-то длинный текст, Какой-то длинный текст, Какой-то длинный текст.", size: 25},
+			{type: "text", text: "тест", size: 30},
+			{type: "slots", items: [{id:263},{id:264}]}
+		],
+		right: [
+			{type: "text", text: "уже не жопа 2", size: 30}
+		]
+	}
+})
+ScrutinyAPI_V2.setScrutiny("test", "test0", "test4", {
+	name: "test scrutiny",
+	size: 100,
+	x: 350,
+	y: 300,
+	lines: ["test3"],
+	isDone: [["test0", "test3"]],
+	icon: {
+		id: 264
+	}
+})
+Callback.addCallback("ItemUse", function(coords,item,block,isExter,player){
+	if(item.id==264){
+		ScrutinyAPI_V2.open(player, "test");
+	}else if(item.id == 263){
+		ScrutinyAPI_V2.give(player, "test", "test0", "test3")
+		ScrutinyAPI_V2.give(player, "test", "test0", "test")
+		ScrutinyAPI_V2.give(player, "test", "test0", "test2")
+	}
+});*/
 EXPORT("AchievementAPI", AchievementAPI);
 EXPORT("ScrutinyAPI_V1", ScrutinyAPI);
 EXPORT("ScrutinyAPI", ScrutinyAPI_V2);
