@@ -130,6 +130,7 @@ let ScrutinyAPI_V2 = {
 				this.windows[window].tabs[tab].width = obj.x / 2 + obj.size + 20;
 		}
 		this.windows[window].tabs[tab].scrutinys[scrutiny]=obj;
+		Callback.invokeCallback("AddScrutiny", window, tab, scrutiny);
 	},
 	isScrutiny(player, window, tab, name){
 		if(!this.scrutiny[window])
@@ -574,7 +575,8 @@ function AchievementAPI(){
 	}
 }
 let Achievement = new AchievementAPI();
-Network.addClientPacket("aw.achievement.give", function(scrutiny){
+Network.addClientPacket("aw.achievement.give", function(data){
+  let scrutiny = ScrutinyAPI_V2.windows[data.window].tabs[data.tab].scrutinys[data.name];
 	Achievement.give(scrutiny.name, TranslationLoad.get("aw.message.scrutiny", [["name", scrutiny.name]]), scrutiny.icon)
 });
 let ScrutinyAPI = {
@@ -593,7 +595,11 @@ let ScrutinyAPI = {
 		if(value){
 			let client = Network.getClientForPlayer(player);
 			if(client)
-				client.send("aw.achievement.give", ScrutinyAPI_V2.windows[window].tabs[tab].scrutinys[name])
+				client.send("aw.achievement.give",  {
+				   window: window,
+				   tab: tab,
+				   name: name
+				 })
 		}
 		return value;
 	},
