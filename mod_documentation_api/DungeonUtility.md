@@ -160,9 +160,9 @@ ModAPI.addAPICallback("DungeonUtility", function(api){
     StructureUtility.addBlock("test", 0, i, 0, new BlockState(5, 2));
   
   //генерация структуры 
-  new api.Structure.OverworldFind({
+  new api.Structure.GenerateType.OverworldFind({
     chance: 100,//чем больше чесло, тем реже генерируются
-    stru: new Structure.advance("test")
+    stru: new api.Structure.advanced("test")
   });
 });
 ```
