@@ -54,8 +54,62 @@ Dungeon Utility - мод библиотека, для создания стру�
 + Параметры
   + name - имя структуры 
 
+Полученние StructurePool по имени, по умолчанию pool везде "default"
+**StructureLoader.getStructurePoolByName(name)**
 
-Создание структуры кодом
+
+Сохраняет структуру в выбранный формат 
+**StructureLoader.save(path, name, type, compile)**
+
+## модуль StructureIntegration
+Создаёт интеграцию с BonsaiPots
+**StructureIntegration.registerTreeToBonsaiPots(sapling, stru, obj)**
++ sapling: object
+  + id - id саженца
+  + data - data саженца
++ stru - имя структуры 
++ obj: object
+  + move: Object - смещение 
+    + x 
+    + y
+    + z
+  + drops: array
+    + id
+    + data
+    + chance
+    + rolls 
+
+## модуль ItemGeneration
+Модуль для генерации предметов 
+
+Создать генератор предметов 
+**ItemGeneration.newGenerator(name)**
+
+Добавить генерируемый предмет
+**ItemGeneration.addItem(name, id, random, count, data, extra)**
+
+Заполнить сундук 
+**ItemGeneration.fill(name, x, y, z, random, region, packet)**
+
+Создать интеграцию с Recipe Viewer 
+**ItemGeneration.registerRecipeViewer(generator, name)**
+
+Получить все генераторы 
+**ItemGeneration.getAllGenerator()**
+
+Получить все генерируемые предметы 
+**ItemGeneration.getItems(name)**
+
+Установка генерируемых предметов 
+**ItemGeneration.setItems(name, items)**
+
+Проверяет существуетли генератор
+**ItemGeneration.isGenerator(name)**
+
+Загрузка генератора из файла 
+**ItemGeneration.importFromFile(name, path)**
+
+## модуль StructureUtility
 
 **StructureUtility.newStructure(name, stru)**
 + Параметры
@@ -64,7 +118,6 @@ Dungeon Utility - мод библиотека, для создания стру�
 
 
 Добавление блоков в структуру
-
 **StructureUtility.addBlock(stru, x, y, z, state, extra, tag)**
 + Параметры
   + name - имя структуры 
@@ -91,6 +144,26 @@ Dungeon Utility - мод библиотека, для создания стру�
 Тоже самое что Structure.setStructure
 **Structure.set(name, x, y, z, region, packet)**
 
+Проверяет структуру на координатах 
+**Structure.isStructure(name, x, y, z, region)**
+
+Тоже тоже что Structure.isStructure
+**Structure.is(name, x, y, z, region)**
+
+Проверяет может ли быть структура установлена
+**Structure.isSetStructure(name, x, y, z, region)**
+
+Тоже тоже что Structure.isSetStructure
+**Structure.isSet(name, x, y, z, region)**
+
+Устанавливает структуру с задержкой каждого блока sleep, в милисикундах 
+**Structure.build(name, x, y, z, sleep, region, packet)**
+
+Разрушает структуру 
+**Structure.destroy(name, x, y, z, region)**
+
+Возвращает массив блоков структуры
+**Structure.getStructure(name)**
 
 Создание прототипа структуры 
 
@@ -223,8 +296,59 @@ StructurePool - класс для хранения структур, иногд�
 
 **new StructurePool(name)**
 
+регистрирует загрузку структуры 
 **<pool>.load(name, path, type, compile)**
+
+загружает структуру
 **<pool>.loadRuntime(name, path, type, compile)**
+
+устанавливает структуру под именем 
+**<pool>.put(name, stru)**
+
+полученние структуры 
+**<pool>.get(name)**
+
+получение всех структур 
+**<pool>.getAllStructure()**
+
+проверяет загружена ли структура 
+**<pool>.isLoad(name)**
+
+удаляет структуру 
+**<pool>.deLoad(name)**
+
+## StructureDescription 
+StructureDescription - новый класс для создания структур кодом, более удобный чем старый способ
+Почти все методы могут принимать место имени java описание структуры его можно получить с помощью getDescription
+
+конструкторы:
+**new StructureDescription()**
+**new StructureDescription(name)**
+
+добавляет блок в структуру 
+**<description>.addBlock(x, y, z, state)**
+
+возвращает BlockState 
+**<description>.getBlock(x, y, z)**
+
+проверяет естли блок
+**<description>.isBlock(x, y, z)**
+
+Сохраняет структуру под именем 
+**<description>.save(name)**
+
+возвращает java описание структуры
+**<description>.getDescription()**
+
+### Примеры
+```js
+let pool = new StructurePool("pool");
+let description = new StructureDescription()
+  .addBlock(0, 0, 0, new BlockState(1, 0));
+
+pool.put(description.getDescription());
+```
+
 
 ## Новые кэлбэки 
 перед загрузки структур
@@ -236,6 +360,13 @@ Callback.addCallback("StructurePreLoad", function(){
 после загрузки структур
 ```js
 Callback.addCallback("StructureLoad", function(){
+  
+});
+```
+
+после загрузки структур, но один раз
+```js
+Callback.addCallback("StructureLoadOne", function(){
   
 });
 ```
