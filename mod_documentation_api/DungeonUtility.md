@@ -156,6 +156,47 @@ StructureUtility.addBlock(stru, x, y, z, state, extra, tag)
 + extra - BlockState дополнительного блока, по умолчанию null
 + tag - NBT.CompoundTag блока
 
+Возвращает размер структуры 
+```js
+StructureUtility.getStructureSize(name)
+```
+
+Возвращает количество блоков структуре
+```js
+StructureUtility.getCountBlock(stru)
+```
+
+Возвращает структуру с поворотом 
+```js
+StructureUtility.rotate(stru, rotate)
+```
++ stru - структура
++ rotate - StructureRotation...
+
+Создаёт структуру с поворотами
+```js
+StructureUtility.registerRotations(stru, rotates)
+```
+
+Генерирует сферу
+```js
+StructureUtility.generateShape(region, x, y, z, r, y_max, id, data, dirtId, dirtData, grassId, grassData)
+```
+
+Генерирует сферу
+```js
+StructureUtility.generateShapeOptimization(region, name, x, y, z, r, id, data)
+```
+
+Суёт мобов в спавнер
+```js
+StructureUtility.spawnEntity(region, x, y, z, ents, random)
+```
+
+Заполняет область блоками
+```js
+StructureUtility.fill(x1, y1, z1, x2, y2, z2, block, region)
+```
 
 Получение имени всех структур 
 ```js
