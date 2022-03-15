@@ -29,41 +29,51 @@ Dungeon Utility - мод библиотека, для создания стру�
   + Structures
 
 
+## Модуль StructureLoader
+StructureLoader модуль для загрузки структур 
 
-Регистрация загрузка структуры(Структуры загржаются во время загрузки мира)
-
-**StructureLoader.load(path, name, type, compression)**
-+ Параметры 
-  + path - полный путь к файлу
-  + name - имя структуры под которым она будет доступна 
-  + type - формат загружаемой структуры, по умолчанию DungeonUtility 
-  + compression - сжатали структура, по умолчанию false 
+Регистрация загрузка структуры(Структуры загржаются во время загрузки мира, в Dungeon Utility 5.0 по возможности загружает во время загрузки модификаций)
+```js
+StructureLoader.load(path, name, type, compression)
+```
++ path - полный путь к файлу
++ name - имя структуры под которым она будет доступна 
++ type - формат загружаемой структуры, по умолчанию DungeonUtility 
++ compression - сжатали структура, по умолчанию false 
 
 Загружает структуру в любое время, не все форматы это поддерживают
 
-**StructureLoader.loadRuntime(path, name, type, compression)**
-+ Параметры 
-  + path - полный путь к файлу
-  + name - имя структуры под которым она будет доступна 
-  + type - формат загружаемой структуры, по умолчанию DungeonUtility 
-  + compression - сжатали структура, по умолчанию false 
+```js
+StructureLoader.loadRuntime(path, name, type, compression)
+```
++ path - полный путь к файлу
++ name - имя структуры под которым она будет доступна 
++ type - формат загружаемой структуры, по умолчанию DungeonUtility 
++ compression - сжатали структура, по умолчанию false 
 
 Проверка загружинали структура 
 
-**StructureLoader.isLoad(name)**
-+ Параметры
-  + name - имя структуры 
+```js
+StructureLoader.isLoad(name)
+```
++ name - имя структуры 
 
 Полученние StructurePool по имени, по умолчанию pool везде "default"
-**StructureLoader.getStructurePoolByName(name)**
+```js
+StructureLoader.getStructurePoolByName(name)
+```
 
 
 Сохраняет структуру в выбранный формат 
-**StructureLoader.save(path, name, type, compile)**
+```js
+StructureLoader.save(path, name, type, compile)
+```
 
 ## модуль StructureIntegration
 Создаёт интеграцию с BonsaiPots
-**StructureIntegration.registerTreeToBonsaiPots(sapling, stru, obj)**
+```js
+StructureIntegration.registerTreeToBonsaiPots(sapling, stru, obj)
+```
 + sapling: object
   + id - id саженца
   + data - data саженца
@@ -83,104 +93,185 @@ Dungeon Utility - мод библиотека, для создания стру�
 Модуль для генерации предметов 
 
 Создать генератор предметов 
-**ItemGeneration.newGenerator(name)**
+```js
+ItemGeneration.newGenerator(name)
+```
 
 Добавить генерируемый предмет
-**ItemGeneration.addItem(name, id, random, count, data, extra)**
+```js
+ItemGeneration.addItem(name, id, random, count, data, extra)
+```
 
 Заполнить сундук 
-**ItemGeneration.fill(name, x, y, z, random, region, packet)**
+```js
+ItemGeneration.fill(name, x, y, z, random, region, packet)
+```
 
 Создать интеграцию с Recipe Viewer 
-**ItemGeneration.registerRecipeViewer(generator, name)**
+```js
+ItemGeneration.registerRecipeViewer(generator, name)
+```
 
 Получить все генераторы 
-**ItemGeneration.getAllGenerator()**
+```js
+ItemGeneration.getAllGenerator()
+```
 
 Получить все генерируемые предметы 
-**ItemGeneration.getItems(name)**
+```js
+ItemGeneration.getItems(name)
+```
 
 Установка генерируемых предметов 
-**ItemGeneration.setItems(name, items)**
+```js
+ItemGeneration.setItems(name, items)
+```
 
 Проверяет существуетли генератор
-**ItemGeneration.isGenerator(name)**
+```js
+ItemGeneration.isGenerator(name)
+```
 
 Загрузка генератора из файла 
-**ItemGeneration.importFromFile(name, path)**
+```js
+ItemGenerationItemGeneration.importFromFile(name, path)
+```
 
 ## модуль StructureUtility
 
-**StructureUtility.newStructure(name, stru)**
-+ Параметры
-  + имя структуры 
-  + массив блоков, по умолчанию пустой 
+```js
+StructureUtility.newStructure(name, stru)
+```
++ name - имя структуры 
++ stru - массив блоков, по умолчанию пустой 
 
 
 Добавление блоков в структуру
-**StructureUtility.addBlock(stru, x, y, z, state, extra, tag)**
-+ Параметры
-  + name - имя структуры 
-  + x, y, z - координаты 
-  + state - BlockState основного блока
-  + extra - BlockState дополнительного блока, по умолчанию null
-  + tag - NBT.CompoundTag блока
+```js
+StructureUtility.addBlock(stru, x, y, z, state, extra, tag)
+```
++ name - имя структуры 
++ x, y, z - координаты 
++ state - BlockState основного блока
++ extra - BlockState дополнительного блока, по умолчанию null
++ tag - NBT.CompoundTag блока
 
 
 Получение имени всех структур 
+```js
+StructureUtility.getAllStructureName()
+```
 
-**StructureUtility.getAllStructureName()**
+## Модуль StructureRotation
 
+**Список поворотов**
+```js
+StructureRotation.DEFAULT
+StructureRotation.DEGREES_90
+StructureRotation.DEGREES_180
+StructureRotation.DEGREES_270
+StructureRotation.DEFAULT_DOWN
+StructureRotation.DEGREES_90_DOWN
+StructureRotation.DEGREES_180_DOWN
+StructureRotation.DEGREES_270_DOWN
+```
+
+Возвращает все повороты
+```js
+StructureRotation.getAll();
+```
+
+Возвращает все повороты, которые не меняют y
+```js
+StructureRotation.getAllY();
+```
+Возвращает все повороты, которые не меняют y
+```js
+StructureRotation.getAllY();
+```
+
+Возвращает все перевёрнутые повороты 
+```js
+StructureRotation.getAllDown();
+```
+
+Возвращает рандомный поворот 
+```js
+StructureRotation.getRandomName(rotates, random);
+```
++ rotates - массив поворотов
++ random - java.util.Random 
+
+
+
+
+## Модуль Structure 
 
 Установка структуры в мире
-
-**Structure.setStructure(name, x, y, z, region, packet)**
-+ Параметры 
-  + name - имя структуры 
-  + x, y, z - координаты 
-  + region - BlockSource 
-  + packet - по умолчанию {}, требуется для создания более сложных структур, передаётся в прототип структуры 
+```js
+Structure.setStructure(name, x, y, z, region, packet)
+```
++ name - имя структуры 
++ x, y, z - координаты 
++ region - BlockSource 
++ packet - по умолчанию {}, требуется для создания более сложных структур, передаётся в прототип структуры 
 
 Тоже самое что Structure.setStructure
-**Structure.set(name, x, y, z, region, packet)**
-
+```js
+Structure.set(name, x, y, z, region, packet)
+```
 Проверяет структуру на координатах 
-**Structure.isStructure(name, x, y, z, region)**
+```js
+Structure.isStructure(name, x, y, z, region)
+```
 
 Тоже тоже что Structure.isStructure
-**Structure.is(name, x, y, z, region)**
+```js
+Structure.is(name, x, y, z, region)
+```
 
 Проверяет может ли быть структура установлена
-**Structure.isSetStructure(name, x, y, z, region)**
+```js
+Structure.isSetStructure(name, x, y, z, region)
+```
 
 Тоже тоже что Structure.isSetStructure
-**Structure.isSet(name, x, y, z, region)**
+```js
+Structure.isSet(name, x, y, z, region)
+```
 
 Устанавливает структуру с задержкой каждого блока sleep, в милисикундах 
-**Structure.build(name, x, y, z, sleep, region, packet)**
+```js
+Structure.build(name, x, y, z, sleep, region, packet)
+```
 
 Разрушает структуру 
-**Structure.destroy(name, x, y, z, region)**
+```js
+Structure.destroy(name, x, y, z, region)
+```
 
 Возвращает массив блоков структуры
-**Structure.getStructure(name)**
+```js
+Structure.getStructure(name)
+```
 
 Создание прототипа структуры 
-
-**Structure.setGlobalPrototype(name, obj)**
-+ Параметры 
-  + имя структуры 
-  + obj - объект описания
-    + isBlock(original_pos, data, region, packet){return true} проверка можетли блок быть установлен 
-    + setBlock(original_pos, data, region, packet){} - событие установики блока
-    + before(x, y, z, region, packet){} - перед установки структуры 
-    + after(x, y, z, region, packet){} - после установки структуры 
+```js
+Structure.setGlobalPrototype(name, obj)**
+```
++ name - имя структуры 
++ obj - объект описания
+  + isBlock(original_pos, data, region, packet){return true} проверка можетли блок быть установлен 
+  + setBlock(original_pos, data, region, packet){} - событие установики блока
+  + before(x, y, z, region, packet){} - перед установки структуры 
+  + after(x, y, z, region, packet){} - после установки структуры 
 
 
 
 Создание объекта структуры 
-
-**new Structure.advanced(name)**
+```js
+new Structure.advanced(name)
+```
 + name - имя структуры 
 + создаёт объект 
   + **setStructure(x, y, z, region, packet)**
@@ -199,13 +290,13 @@ Dungeon Utility - мод библиотека, для создания стру�
 
 
 Класс PrototypeJS может использоваться место обычного прототипа, более быстрый но в некоторых ситуациях может выдовать ошибку
-
-**класс PrototypeJS(isBlock, setBlock, before, after)**
-+ Параметры
-  + isBlock(original_pos, data, region, packet){return true} проверка можетли блок быть установлен 
-  + setBlock(original_pos, data, region, packet){} - событие установики блока
-  + before(x, y, z, region, packet){} - перед установки структуры 
-  + after(x, y, z, region, packet){} - после установки структуры 
+```js
+new PrototypeJS(isBlock, setBlock, before, after)**
+```
++ isBlock(original_pos, data, region, packet){return true} проверка можетли блок быть установлен 
++ setBlock(original_pos, data, region, packet){} - событие установики блока
++ before(x, y, z, region, packet){} - перед установки структуры 
++ after(x, y, z, region, packet){} - после установки структуры 
 
 ## Вид форматов и как они выглядят 
 ### DungeonAPI_V2
@@ -246,10 +337,14 @@ public interface IGenerationType {
 
 ### Методы StructurePiece
 Создаёт тип генерации
-**StructurePiece.registerType(IGenerationType)**
+```js
+StructurePiece.registerType(IGenerationType)
+```
 
 Возвращает экземпляр IGenerationDescription
-**StructurePiece.getDefault(obj)**
+```js
+StructurePiece.getDefault(obj)
+```
 + obj
   + type: string - тип генерации 
   + name: string - имя структуры под которым структура будет сохранена в списке сгенерированных структур 
@@ -264,16 +359,24 @@ public interface IGenerationType {
   + structure: Structure.advanced 
 
 Регистрирует генерацию структуры 
-**StructurePiece.register(IGenerationDescription)**
+```js
+StructurePiece.register(IGenerationDescription)
+```
 
 Возвращает ближайшую струкру к указыным координатам 
-**StructurePiece.getNearestStructure(x, y, z)**
+```js
+StructurePiece.getNearestStructure(x, y, z)
+```
 
 Добавляет в список сгенерированных структур 
-**StructurePiece.addStructure(name, x, y, z)**
+```js
+StructurePiece.addStructure(name, x, y, z)
+```
 
 Удаляет структуру из списка сгенерированных структур 
-**StructurePiece.deleteStructure(x, y, z)**
+```js
+StructurePiece.deleteStructure(x, y, z)
+```
 
 ### Пример 
 ```js
@@ -294,51 +397,79 @@ Callback.addCallback("StructureLoadOne", function(){
 ## StructurePool
 StructurePool - класс для хранения структур, иногда возможно то что структуры из разных модов конфликтуют, чтобы этого не было был добавлен StructurePool 
 
-**new StructurePool(name)**
+```js
+new StructurePool(name)
+```
 
 регистрирует загрузку структуры 
-**<pool>.load(name, path, type, compile)**
+```js
+<pool>.load(name, path, type, compile)
+```
 
 загружает структуру
-**<pool>.loadRuntime(name, path, type, compile)**
+```js
+<pool>.loadRuntime(name, path, type, compile)
+```
 
 устанавливает структуру под именем 
-**<pool>.put(name, stru)**
+```js
+<pool>.put(name, stru)
+```
 
 полученние структуры 
-**<pool>.get(name)**
+```js
+<pool>.get(name)
+```
 
 получение всех структур 
-**<pool>.getAllStructure()**
+```js
+<pool>.getAllStructure()
+```
 
 проверяет загружена ли структура 
-**<pool>.isLoad(name)**
+```js
+<pool>.isLoad(name)
+```
 
 удаляет структуру 
-**<pool>.deLoad(name)**
+```js
+<pool>.deLoad(name)
+```
 
 ## StructureDescription 
 StructureDescription - новый класс для создания структур кодом, более удобный чем старый способ
 Почти все методы могут принимать место имени java описание структуры его можно получить с помощью getDescription
 
 конструкторы:
-**new StructureDescription()**
-**new StructureDescription(name)**
+```js
+new StructureDescription()
+new StructureDescription(name)
+```
 
 добавляет блок в структуру 
-**<description>.addBlock(x, y, z, state)**
+```js
+<description>.addBlock(x, y, z, state)
+```
 
 возвращает BlockState 
-**<description>.getBlock(x, y, z)**
+```js
+<description>.getBlock(x, y, z)
+```
 
 проверяет естли блок
-**<description>.isBlock(x, y, z)**
+```js
+<description>.isBlock(x, y, z)
+```
 
 Сохраняет структуру под именем 
-**<description>.save(name)**
+```js
+<description>.save(name)
+```
 
 возвращает java описание структуры
-**<description>.getDescription()**
+```js
+<description>.getDescription()
+```
 
 ### Примеры
 ```js
