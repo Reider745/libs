@@ -543,6 +543,27 @@ Callback.addCallback("StructureLoadOne", function(){
 });
 ```
 
+# Обновление Dungeon Utility 5.0
+Обновление 5.0 достаточно глобальное
+
++ Добавлены новые методы поворота структуры
+  + Добавлен модуль StructureRotation
+  + Добавлен метод StructureUtility.registerRotations
+
++ Изменения в системе загрузки структур 
+  + StructureLoader.load будет по возможности загружать структуру во время загрузки мира 
+  + Добавлен StructurePool
+  + Оптимизация загрузки формата DungeonAPI_V2
+
++ Другие изменения 
+  + Добавлен StructureDescription 
+  + Добавлен StructureUtility.fill
+  + Добавлены методы с сокращённым названием Structure.set Structure.is
+  + Добавлена возможность создавать прослушиватель на ванильные Feature 
+  + Добавлен StructurePiece 
+  + Добавлен StructureIntegration 
+  + Добавлен VisualStructure.AnimationOptimization
+
 # Примеры
 
 ```js
