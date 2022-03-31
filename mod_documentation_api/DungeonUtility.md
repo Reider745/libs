@@ -397,6 +397,12 @@ StructurePiece.getDefault(obj)
   + distance: number - минимальное расстояние между ближайшей структуры 
   + save: boolean - сохранять ли структуру в список сгенерированных структур
   + isSet: boolean - проверяет естли место для структуры 
+  + dimension: number - id измерения в котором будет генерироватся структура 
+  + white_list: boolean - переключатель белого/чёрного списка биомов
+  + biomes: array - список биомов
+  + white_list_blocks: boolean - переключатель белого/чёрного списка блоков
+  + blocks: array - список блоков на которых может/не может генерироватся структура 
+  + checkName: boolean - будет ли проверятся имена структуры при генерации 
   + structure: Structure.advanced 
 
 Регистрирует генерацию структуры 
@@ -406,17 +412,21 @@ StructurePiece.register(IGenerationDescription)
 
 Возвращает ближайшую струкру к указыным координатам 
 ```js
-StructurePiece.getNearestStructure(x, y, z)
+StructurePiece.getNearestStructure(x, y, z, region)
 ```
 
 Добавляет в список сгенерированных структур 
 ```js
-StructurePiece.addStructure(name, x, y, z)
+StructurePiece.addStructure(name, x, y, z,  region)
 ```
 
 Удаляет структуру из списка сгенерированных структур 
 ```js
-StructurePiece.deleteStructure(x, y, z)
+StructurePiece.deleteStructure(x, y, z,  region)
+```
+
+```js
+StructurePiece.generateStructure(IGenerationDescription, x, y, z, random, region, packet)
 ```
 
 ### Пример 
@@ -475,6 +485,21 @@ new StructurePool(name)
 удаляет структуру 
 ```js
 <pool>.deLoad(name)
+```
+
+копирует структуру 
+```js
+<pool>.copy(name1, name2)
+```
+
+создаёт вариации поворота структуры 
+```js
+<pool>.registerRotations(stru, rotates)
+```
+
+устанавливает прототип структуры 
+```js
+<pool>.setGlobalPrototype(name, obj)
 ```
 
 ## StructureDescription 
