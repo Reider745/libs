@@ -1,7 +1,7 @@
 {
-    "source-dirs": ["src"],
-    "library-dirs": ["lib"],
-    "verbose": true,
-    "options": [],
-    "boot-classes": ["com.reider.premodloader.ModLoader"]
+  "source-dirs": ["src"],
+  "library-dirs": ["lib"],
+  "verbose": true,
+  "options": [],
+  "boot-classes": ["com.reider.ModLoader"]
 }
