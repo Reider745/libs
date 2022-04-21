@@ -42,6 +42,23 @@ public class Controller {
         return scr.get(name, scr);
     }
 
+    public void putValue(String name, Object value){
+        scriptable.put(name, scriptable, value);
+    }
+
+    public void putThisValue(String name, Object value){
+        thas.put(name, thas, value);
+    }
+
+    public void putContextValue(String name, Object value){
+        Scriptable scr = ScriptRuntime.getTopCallScope(context);
+        scr.put(name, scr, value);
+    }
+
+    public Object eval(String name){
+        return context.evaluateString(scriptable, name,"patched", 1, null);
+    }
+
     public Function getOriginalFunction() {
         return orgFunction;
     }

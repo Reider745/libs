@@ -7,7 +7,7 @@ classes.dex - подключается как обычная java библиот
 
 # Список методов 
 *флаги*
-```
+```js
 Flags.BEFORE - до выполнения метода
 Flags.AFTER - после выполнения метода
 Flags.REPLACE - заменить метод
@@ -34,9 +34,13 @@ Patched.getReplacedFunction(orginalFunction, function(controller){
 ```js
 controller.setReplaced(boolean);
 controller.isReplaced();
-controller.getValue();
-controller.getThisValue();//возвращает результат из области видимости, где выполняется функция, исключением является закрытая область 
-controller.getContextValue();//возвращает результат из области видимости, где выполняется функция 
+controller.getValue(cmd);
+controller.getThisValue(cmd);//возвращает результат из области видимости, где выполняется функция, исключением является закрытая область 
+controller.getContextValue(cmd);//возвращает результат из области видимости, где выполняется функция 
+controller.putValue(cmd, value);
+controller.putThisValue(cmd, value);
+controller.putContextValue(cmd, value);
+controller.eval(code);//выполняет код, для области видимости функции
 controller.getOriginalFunction();
 controller.getContext();
 controller.setArguments(array);
