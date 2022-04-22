@@ -21,9 +21,35 @@ Callback.addCallback("ModsPreLoaded", function(){
 ```js
 ModLoader.addPreLoad(dir);
 ModLoader.addPreLoad(dir, name);
+ModLoader.addPreLoad({
+  isClient: boolean,
+  name?: string,
+  dir?: string,
+  version?: string,
+  
+  onRunning?: function(){
+    
+  },
+  onPrepareResources?: function(){
+      
+  }
+});
 
 ModLoader.addPostLoad(dir);
 ModLoader.addPostLoad(dir, name);
+ModLoader.addPostLoad({
+  isClient: boolean,
+  name?: string,
+  dir?: string,
+  version?: string,
+  
+  onRunning?: function(){
+    
+  },
+  onPrepareResources?: function(){
+      
+  }
+});
 ```
 
 *Проверит естли мод в списке модов*
@@ -42,4 +68,9 @@ ModLoader.deleteLoadedByDir(dir);
 *Возвращает количество модов*
 ```js
 ModLoader.countMod();
+```
+
+*Возвращает список модов*
+```js
+ModLoader.getModList();//List<ApparatusMod>
 ```
