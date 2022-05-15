@@ -18,7 +18,11 @@ let Patched = {
 		return PatchedJava.getReplacedFunction(orgFunc, handler, flags);
 	},
 	patchedToObject(obj, name, func, flags){
-		obj[name] = this.getReplacedFunction(obj[name], func, flags);
+	  try{
+		  obj[name] = this.getReplacedFunction(obj[name], func, flags);
+	  }catch(e){
+	    Logger.debug("Patched", e);
+	  }
 	}
 };
 

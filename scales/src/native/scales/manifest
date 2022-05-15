@@ -1,0 +1,11 @@
+{
+    "shared": {
+        "name": "scales",
+		"include": []
+    },
+    "depends": [
+    	"innercore",
+    	"nativejs",
+		"gnustl_shared"
+	]
+}
