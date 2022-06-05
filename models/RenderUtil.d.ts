@@ -1,10 +1,20 @@
 /// <reference path="./core-engine.d.ts"/>
 
 declare namespace RenderUtil {
+    interface Box {
+        x1: number;
+        y1: number;
+        z1: number;
+        x2: number;
+        y2: number;
+        z2: number;
+        id: number | string;
+        data: number;
+    }
     class Model {
         addBoxByBlock(name:string, x1:number, y1:number, z1:number, x2:number, y2:number, z2:number, id:number, data:number): Model;
-        getBoxes(): any;
-        setBoxes(boxes: any);
+        getBoxes(): {[name: string]: Box};
+        setBoxes(boxes: {[name: string]: Box});
         getAllName(): string[];
         getBlockRender(): BlockRenderer.Model;
         getCollisionShape(): ICRender.CollisionShape;
@@ -43,6 +53,9 @@ declare namespace RenderUtil {
         setHandler(handler: IHandlerAnimation): void;
     }
 
+    function getModelById(id: number, data: number): Model;
+    function isClick(x: number, y: number, z: number, box: Box);
+    function isClickBox(x: number, y: number, z: number, model: Model, name: string);
     function convertModel(model: any): any;
     function meshCopy(original: RenderMesh, mesh?:RenderMesh): RenderMesh;
 }

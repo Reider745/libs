@@ -10,11 +10,12 @@
 */
 LIBRARY({
 	name: "RenderUtil",
-	version: 3,
+	version: 4,
 	shared: true,
 	api: "CoreEngine"
 });
 let RenderAPI = {
+	models: {},
 	Model(){
 		let boxes = {};
 		this.addBoxByBlock = function(name, x1, y1, z1, x2, y2, z2, id, data){
@@ -52,7 +53,8 @@ let RenderAPI = {
 			let entry = model.addEntry();
 			let keys = Object.keys(boxes);
 			for(let i in keys)
-				entry.addBox(boxes[keys[i]].x1, boxes[keys[i]].y1, boxes[keys[i]].z1, boxes[keys[i]].x2, boxes[keys[i]].y2, boxes[keys[i]].z2);
+				if(boxes[keys[i]].id !== 0)
+					entry.addBox(boxes[keys[i]].x1, boxes[keys[i]].y1, boxes[keys[i]].z1, boxes[keys[i]].x2, boxes[keys[i]].y2, boxes[keys[i]].z2);
 			return model;
 		}
 		this.getICRenderModel = function(){
@@ -61,6 +63,7 @@ let RenderAPI = {
 			return render;
 		}
 		this.setBlockModel = function(id, data){
+			RenderAPI.models[id+":"+data] = this.copy();
 			data = data || -1
 			BlockRenderer.setStaticICRender(id, data, this.getICRenderModel());
 			BlockRenderer.setCustomCollisionAndRaycastShape(id, data, this.getCollisionShape())
@@ -297,6 +300,17 @@ let RenderAPI = {
 				end: obj.end || function(){},
 			}
 		}
+	},
+	getModelById(id, data){
+		return this.models[id+":"+data];
+	},
+	isClick(x, y, z, box){
+		if((x >= box.x1 && y >= box.y1 && z >= box.z1) && (x <= box.x2 && y <= box.y2 && z <= box.z2))
+            return true;
+        return false;
+	},
+	isClickBox(x, y, z, model, box_name){
+		return this.isClick(x, y, z, model.getBoxes()[box_name]);
 	},
 	convertModel(model){
 		return ItemModel.newStandalone().setModel(model).getItemRenderMesh(1, false);
