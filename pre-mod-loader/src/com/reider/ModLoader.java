@@ -4,11 +4,8 @@ import com.zhekasmirnov.apparatus.modloader.ApparatusMod;
 import com.zhekasmirnov.apparatus.modloader.ApparatusModLoader;
 import com.zhekasmirnov.apparatus.modloader.LegacyInnerCoreMod;
 import com.zhekasmirnov.apparatus.multiplayer.mod.MultiplayerModList;
+import com.zhekasmirnov.horizon.runtime.logger.Logger;
 import com.zhekasmirnov.innercore.api.mod.adaptedscript.AdaptedScriptAPI;
-import com.zhekasmirnov.innercore.api.mod.util.ScriptableFunctionImpl;
-import com.zhekasmirnov.innercore.mod.build.ModBuilder;
-import com.zhekasmirnov.innercore.modpack.ModPackContext;
-import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 
 import java.io.File;
@@ -29,7 +26,6 @@ public class ModLoader {
         void each(List<ApparatusMod> list, ApparatusMod mod, int index);
     }
 
-    private static boolean value = true;
     private static ArrayList<Loader> preloaded = new ArrayList<>();
     private static ArrayList<Loader> PostLoaded = new ArrayList<>();
 
@@ -129,35 +125,18 @@ public class ModLoader {
             each.each(mods, mods.get(i), i);
     }
 
-    public static void boot(HashMap map){
+    public static void boot(HashMap<?, ?> map){
+        AdaptedScriptAPI.Callback.invokeCallback("ModsPreLoaded", null, null, null, null, null, null, null, null, null, null);
+        for(int i = 0;i < preloaded.size();i++) {
+            Loader loader = preloaded.get(i);
+            LegacyInnerCoreMod mod = (LegacyInnerCoreMod) deleteLoadedByDir(loader.path);
+            getModList().add(0, mod);
+        }
 
-        AdaptedScriptAPI.Callback.addCallback("NativeGuiChanged", new ScriptableFunctionImpl() {
-            @Override
-            public Object call(Context context, Scriptable scriptable, Scriptable scriptable1, Object[] objects) {
-                String name = (String) objects[0];
-                if(name.equals("toast_screen") && value){
-                    AdaptedScriptAPI.Callback.invokeCallback("ModsPreLoaded", null, null, null, null, null, null, null, null, null, null);
-
-                    for(int i = 0;i < preloaded.size();i++) {
-                        Loader loader = preloaded.get(i);
-                        LegacyInnerCoreMod mod = (LegacyInnerCoreMod) deleteLoadedByDir(loader.path);
-                        if(mod != null && !mod.getLegacyModInstance().isClientOnly())
-                            MultiplayerModList.getSingleton().add(mod);
-                        getModList().add(0, new LegacyInnerCoreMod(ModBuilder.buildModForDir(loader.path, ModPackContext.getInstance().getCurrentModPack(), loader.name)));
-                    }
-
-                    for(int i = 0;i < PostLoaded.size();i++) {
-                        Loader loader = PostLoaded.get(i);
-                        LegacyInnerCoreMod mod = (LegacyInnerCoreMod) deleteLoadedByDir(loader.path);
-                        if(mod != null && !mod.getLegacyModInstance().isClientOnly())
-                            MultiplayerModList.getSingleton().add(mod);
-                        getModList().add(countMod(), new LegacyInnerCoreMod(ModBuilder.buildModForDir(loader.path, ModPackContext.getInstance().getCurrentModPack(), loader.name)));
-                    }
-
-                    value = false;
-                }
-                return null;
-            }
-        }, 0);
+        for(int i = 0;i < PostLoaded.size();i++) {
+            Loader loader = PostLoaded.get(i);
+            LegacyInnerCoreMod mod = (LegacyInnerCoreMod) deleteLoadedByDir(loader.path);
+            getModList().add(countMod(), mod);
+        }
     }
 }
