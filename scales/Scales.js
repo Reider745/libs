@@ -1,6 +1,6 @@
 LIBRARY({
 	name: "Scales",
-	version: 1,
+	version: 2,
 	shared: true,
 	api: "CoreEngine"
 });
@@ -46,9 +46,22 @@ function PlayerScale(javaClass, player, name){
 	}
 }
 
+function Scale(java){
+	this.setDisplay = function(v){
+		java.setDisplay(v);
+		return this;
+	}
+	this.isDisplay = function(){
+		return java.isDisplay();
+	}
+	this.get = function(){
+		return java;
+	}
+}
+
 let Scales = {
 	register(obj){
-		ScalesJava.register(obj);
+		return new Scale(ScalesJava.register(obj));
 	},
 	getScaleByPlayer(player, name){
 		return new PlayerScale(ScalesJava.getScaleByPlayer(player, name), player, name);

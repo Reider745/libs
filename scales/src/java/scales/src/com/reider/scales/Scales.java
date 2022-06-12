@@ -18,29 +18,11 @@ public class Scales {
         String getEmpty();
         boolean isLeft();
         boolean isReset();
+        boolean isDisplay();
     }
 
     private static NetworkJsAdapter network = AdaptedScriptAPI.MCSystem.getNetwork();
     private static Function getJsString = null;
-    static {
-        /*Context context = Context.enter();
-        getJsString = context.compileFunction(context.initStandardObjects(), "funct", "scales.java", 0, null);
-        network.addClientPacket("scales.setValue", new ModdedClient.OnPacketReceivedListener(){
-            @Override
-            public void onPacketReceived(Object o, String s, Class<?> aClass) {
-                ScriptableObject object = (ScriptableObject) o;
-                setValuePlayer(getScalePlayer((String) object.get("player"), (String) object.get("name")), (int) object.get("value"));
-            }
-        });*/
-    }
-
-    //private static long getPlayerByName(String name){
-        
-    //}
-
-    //private static Object toString(String str){
-
-    //}
 
     public static class ScalePlayer {
         long pointer;
@@ -49,7 +31,6 @@ public class Scales {
         }
 
         public void setValue(int value){
-            //network.ge
             setValuePlayer(pointer, value);
         }
 
@@ -66,9 +47,9 @@ public class Scales {
         }
     }
 
-    native public static long registerScale(String name, String full, String helf, String empty, boolean left, boolean reset);
+    native public static long registerScale(String name, String full, String helf, String empty, boolean left, boolean reset, boolean display);
     native public static long getScale(String name);
-    native public static boolean isScale(String name);
+    native public static int isScale(String name);
     native public static String getFull(long point);
     native public static String setFull(long point, String name);
     native public static String getHelf(long point);
@@ -76,8 +57,10 @@ public class Scales {
     native public static String getEmpty(long point);
     native public static String setEmpty(long point, String name);
     native public static String getName(long point);
-    native public static boolean isLeft(long point);
-    native public static boolean isReset(long point);
+    native public static int isLeft(long point);
+    native public static int isReset(long point);
+    native public static int isDisplay(long point);
+    native public static void setDisplay(long point, boolean value);
     native public static long getScalePlayer(String ent, String name);
     native public static void setValuePlayer(long pointer, int value);
     native public static int getValuePlayer(long pointer);
@@ -98,8 +81,8 @@ public class Scales {
         return new ScalePlayer(getScalePlayer(player, name));
     }
 
-    public static void register(ScriptableObject description){
-        new Scales(description);
+    public static Scales register(ScriptableObject description){
+        return new Scales(description);
     }
 
     public long pointer;
@@ -113,7 +96,8 @@ public class Scales {
             description.getHelf(),
             description.getEmpty(),
             description.isLeft(),
-            description.isReset()
+            description.isReset(),
+            description.isDisplay()
         );
     }
 
@@ -124,7 +108,8 @@ public class Scales {
             (String) object.get("helf"),
             (String) object.get("empty"),
             (boolean) object.get("isLeft"),
-            (boolean) object.get("isReset")
+            (boolean) object.get("isReset"),
+            object.has("isDisplay", object) ? (boolean) object.get("isDisplay") : true
         );
     }
 
@@ -157,11 +142,19 @@ public class Scales {
     }
 
     public boolean isLeft(){
-        return isReset(pointer);
+        return isReset(pointer) == 1;
     }
 
     public boolean isReset(){
-        return isReset(pointer);
+        return isReset(pointer) == 1;
+    }
+
+    public boolean isDisplay(){
+        return isDisplay(pointer) == 1;
+    }
+
+    public void setDisplay(boolean v){
+       setDisplay(pointer, v);
     }
 
     public IScaleDescription getScaleDescription(){
@@ -190,6 +183,10 @@ public class Scales {
             @Override
             public boolean isReset() {
                 return _this.isReset();
+            }
+            @Override
+            public boolean isDisplay() {
+                return _this.isDisplay();
             }
         };
     }

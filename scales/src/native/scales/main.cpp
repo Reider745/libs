@@ -69,8 +69,9 @@ class Scales {
 		std::string name;
 		bool left;
 		bool reset;
+		bool display;
 	public:
-		Scales(std::string _name, std::string _full, std::string _helf, std::string _empty, bool _left, bool _reset){
+		Scales(std::string _name, std::string _full, std::string _helf, std::string _empty, bool _left, bool _reset, bool _display){
 			scales.emplace(_name, this);
 			name = _name;
 			full = _full;
@@ -78,6 +79,7 @@ class Scales {
 			empty = _empty;
 			left = _left;
 			reset = _reset;
+			display = _display;
 		}
 
 		std::string getName(){
@@ -110,6 +112,13 @@ class Scales {
 
 		std::string getEmpty(){
 			return empty;
+		}
+
+		void setDisplay(bool _display){
+			display = _display;
+		}
+		bool isDisplay(){
+			return display;
 		}
 
 		void setEmpty(std::string _empty){
@@ -193,6 +202,8 @@ class ScalesModule : public Module {
 					std::string key = keys[i];
 					ScalesData* data = Scales::getPlayerScale(player->getNameTagVTABLE(), key);
 					Scales* scale = data->getScale();
+					if(!scale->isDisplay())
+						continue;
 					int x_bonus = 0;
 					int y = pos->y-SCALE_SIZE+y_right;
 					if(options->getUIProfile() != 0)
@@ -276,23 +287,24 @@ jstring toString(JNIEnv* env, const std::string& nativeString) {
 
 extern "C" {
 	JNIEXPORT jlong JNICALL Java_com_reider_scales_Scales_registerScale
-	(JNIEnv* env, jclass, jstring name, jstring full, jstring helf, jstring empty, jboolean left, jboolean reset) {
+	(JNIEnv* env, jclass, jstring name, jstring full, jstring helf, jstring empty, jboolean left, jboolean reset, jboolean display) {
 		return (jlong) new Scales(
 			toString(env, name),
 			toString(env, full),
 			toString(env, helf),
 			toString(env, empty),
 			(bool)(left == JNI_TRUE),
-			(bool)(reset == JNI_TRUE)
+			(bool)(reset == JNI_TRUE),
+			(bool)(display == JNI_TRUE)
 		);
 	}
 	JNIEXPORT jlong JNICALL Java_com_reider_scales_Scales_getScale
 	(JNIEnv* env, jclass, jstring name) {
 		return (jlong) Scales::getScaleByName(toString(env, name));
 	}
-	JNIEXPORT jboolean JNICALL Java_com_reider_scales_Scales_isScale
+	JNIEXPORT jint JNICALL Java_com_reider_scales_Scales_isScale
 	(JNIEnv* env, jclass, jstring name) {
-		return (jboolean) Scales::isScale(toString(env, name));
+		return (jint) ((int) Scales::isScale(toString(env, name)));
 	}
 	JNIEXPORT jstring JNICALL Java_com_reider_scales_Scales_getFull
 	(JNIEnv* env, jclass, jlong scale) {
@@ -314,13 +326,21 @@ extern "C" {
 	(JNIEnv* env, jclass, jlong scale) {
 		return toString(env, ((Scales*) scale)->getEmpty());
 	}
-	JNIEXPORT jboolean JNICALL Java_com_reider_scales_Scales_isLeft
+	JNIEXPORT jint JNICALL Java_com_reider_scales_Scales_isLeft
 	(JNIEnv* env, jclass, jlong scale) {
-		return (jboolean) ((Scales*) scale)->isLeft();
+		return (jint) ((int) ((Scales*) scale)->isLeft());
 	}
-	JNIEXPORT jboolean JNICALL Java_com_reider_scales_Scales_isReset
+	JNIEXPORT jint JNICALL Java_com_reider_scales_Scales_isReset
 	(JNIEnv* env, jclass, jlong scale) {
-		return (jboolean) ((Scales*) scale)->isReset();
+		return (jint) ((int) ((Scales*) scale)->isReset());
+	}
+	JNIEXPORT jint JNICALL Java_com_reider_scales_Scales_isDisplay
+	(JNIEnv* env, jclass, jlong scale) {
+		return (jint) ((int) ((Scales*) scale)->isDisplay());
+	}
+	JNIEXPORT void JNICALL Java_com_reider_scales_Scales_setDisplay
+	(JNIEnv* env, jclass, jlong scale, jboolean v) {
+		((Scales*) scale)->setDisplay(v == JNI_TRUE);
 	}
 	JNIEXPORT jstring JNICALL Java_com_reider_scales_Scales_getName
 	(JNIEnv* env, jclass, jlong scale) {
