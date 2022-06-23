@@ -1,6 +1,6 @@
 LIBRARY({
   name: "ScrutinyAPI",
-  version: 3,
+  version: 4,
   shared: true,
   api: "CoreEngine"
 });
@@ -523,19 +523,23 @@ function AchievementAPI(){
 	let y_max = 15;
 	let y_default = 0;
 	let expectation = 60;
+	let style = {background: "achievement_background", title: 55, description: 50};
 	
 	this.setTime = function(time, expectation){
 		this.time = time;
 		this.expectation = expectation;
 	}
+	this.setStyle = function(obj) {
+		style = obj;
+	}
 	this.getGui = function(title, description, item){
 		item = item || {};
 		y_default = -600;
 		let content = window.getContent();
-		content.elements.background = {type: "image", bitmap: "achievement_background", x: 0, y:y_default, scale: 1.5}
+		content.elements.background = {type: "image", bitmap: style.background, x: 0, y:y_default, scale: 1.5}
 		content.elements.slot = {type: "slot", bitmap: "_default_slot_empty", x: 13, y: y_default-5, size: 160};
-		content.elements.title = {type: "text", text: title, x: 170, y: y_default+45, font: {color: android.graphics.Color.argb(1, 1, 1, 1), size: 55}}
-		content.elements.description = {type: "text", text: description, x: 20, y: y_default+250, font: {color: android.graphics.Color.argb(1, 0, 1, 0), size: 50}}
+		content.elements.title = {type: "text", text: title, x: 170, y: y_default+45, font: {color: android.graphics.Color.argb(1, 1, 1, 1), size: style.title}}
+		content.elements.description = {type: "text", text: description, x: 20, y: y_default+250, font: {color: android.graphics.Color.argb(1, 0, 1, 0), size: style.description}}
 		container.setSlot("slot", item.id||0, 1, item.data||0)
 	}
 	this.give = function(title, description, item){
@@ -577,7 +581,8 @@ function AchievementAPI(){
 }
 let Achievement = new AchievementAPI();
 Network.addClientPacket("aw.achievement.give", function(data){
-  let scrutiny = ScrutinyAPI_V2.windows[data.window].tabs[data.tab].scrutinys[data.name];
+	let scrutiny = ScrutinyAPI_V2.windows[data.window].tabs[data.tab].scrutinys[data.name];
+	Achievement.setStyle(data.style || {});
 	Achievement.give(scrutiny.name, TranslationLoad.get("aw.message.scrutiny", [["name", scrutiny.name]]), scrutiny.icon)
 });
 let ScrutinyAPI = {
@@ -591,16 +596,17 @@ let ScrutinyAPI = {
 	isScrutiny(player, window, tab, name){
 		return ScrutinyAPI_V2.isScrutiny(player, window, tab, name)
 	},
-	giveScrutiny(player, window, tab, name, bool){
+	giveScrutiny(player, window, tab, name, bool, style){
 		let value = ScrutinyAPI_V2.give(player, window, tab, name, bool);
 		if(value){
 			let client = Network.getClientForPlayer(player);
 			if(client)
 				client.send("aw.achievement.give",  {
-				   window: window,
-				   tab: tab,
-				   name: name
-				 })
+					window: window,
+					tab: tab,
+					name: name,
+					style: style
+				})
 		}
 		return value;
 	},
