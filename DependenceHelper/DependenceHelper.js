@@ -107,7 +107,7 @@ function Dependence(name){
 		let keys = Object.keys(self.loaded);
 		let mods = [];
 		for(let i in self.mods)
-			if(self.loaded[self.mods[i]] === undefined || !self.isLoader[keys[i]](self.loaded[self.mods[i]]))
+		if(self.loaded[self.mods[i].name] === undefined || !self.isLoader[keys[i]](self.loaded[self.mods[i].name]))
 				mods.push(keys[i]);
 		if(mods.length == 0){
 			if(Information != null)
