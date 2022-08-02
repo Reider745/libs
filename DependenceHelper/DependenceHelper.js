@@ -78,6 +78,7 @@ function Dependence(name){
 	this.customMessage = {};
 	this.name = name;
 	let self = this;
+	this.self = self;
 	this.addDependence = function(mod, url, unification, isLoader, customMessage){
 		this.mods.push({name: mod, url: url});
 		ModAPI.addAPICallback(mod, function(api){
@@ -107,7 +108,7 @@ function Dependence(name){
 		let keys = Object.keys(self.loaded);
 		let mods = [];
 		for(let i in self.mods)
-		if(self.loaded[self.mods[i].name] === undefined || !self.isLoader[keys[i]](self.loaded[self.mods[i].name]))
+			if(self.loaded[self.mods[i].name] === undefined || !self.isLoader[keys[i]](self.loaded[self.mods[i].name]))
 				mods.push(keys[i]);
 		if(mods.length == 0){
 			if(Information != null)
@@ -121,7 +122,7 @@ function Dependence(name){
 				Information.endModLoad();
 		}
 		else if(is){
-			dependences.push(this);
+			dependences.push(self);
 			is = false;
 		}
 	});
