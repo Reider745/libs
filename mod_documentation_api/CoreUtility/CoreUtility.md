@@ -31,9 +31,9 @@ ToolTip.addDynamicPost(id, data, function(item) {
 ToolTip.addToolTips(id, data, names);
 ```
 
-Удаление нескольких подсказок
+Удаление определенной подсказки
 ```js
-ToolTip.deleteToolTip(id, data, names);
+ToolTip.deletToolTip(id, data, names);
 ```
 
 Очищение добавленных ранее подсказок
@@ -46,7 +46,7 @@ ToolTip.clearToolTip(id, data);
 ToolTip.getToolTips(id, data);
 ```
 
-Очистка всех подсказок
+Очистка __всех__ добавленных подсказок
 ```js
 ToolTip.clearToolTips();
 ```
@@ -80,7 +80,7 @@ NativeAPI.getActorID(actor);
 NativeAPI.getActorById(id);
 ```
 
-## Ванильные классы, вступление
+## Ванильные классы
 Для небольшого упрощения использования ядра, ванильные классы наследуются от PointerClass.
 
 Возвращает ссылку на класс
@@ -187,10 +187,11 @@ ItemsUtil.overrideArmorValue(id, value);
 
 ## EntityRegister
 
-Добавляет калбек тика на моба, по текстовому идентификатору (например, minecraft:zombie<>, где <> - дополнительные данные для моба, возраст и т.п.)
+Добавляет хандлер тика на моба, по текстовому идентификатору (например, minecraft:zombie<>, где <> - дополнительные данные для моба, возраст и т.п.)
 ```js
 EntityRegister.setHandlerTick(name, function(ent) {
-    
+    // моб улетит нахуй в ебеня
+    Entity.setVelocity(ent, 0, 0.0005, 0);
 });
 ```
 
@@ -235,7 +236,7 @@ TickingAreasManager.countPendingAreas(dimension);
 ```
 
 ## FileUtils
-Нативный модуль для работы с файлами, упрощает работу с большим количеством файлов.
+Нативный модуль для работы с файлами, упрощает работу с большим количеством контента.
 
 ```js
 // удаляет всю папку целиком со всем содержимым
@@ -299,7 +300,7 @@ World.getWorldsCount();
 
 Возвращает класс Random
 ```js
-<level>.getRandom(max);
+<level>.getRandom();
 ```
 
 ## Options
@@ -337,33 +338,34 @@ World.getWorldsCount();
 ```js
 <ClientInstance>.getGuiData();
 ```
+
 Воспроизводит анимацию разрушения блока на заданных координатах
 ```js
-<ClientInstance>.renderDestroyBlock(x, y, z, speed);
+Gui.renderDestroyBlock(x, y, z, speed);
 ```
 
 ## GlobalContext
 
 Возвращает ClientInstance
 ```js
-<globalContext>.getClientInstance();
+GlobalContext.getClientInstance();
 ```
-Возвращает Level
+Возвращает Level для сервера
 ```js
-<globalContext>.getServerLevel();
+GlobalContext.getServerLevel();
 ```
-Возвращает Level
+Возвращает Level для клиента
 ```js
-<globalContext>.getLevel();
+GlobalContext.getLevel();
 ```
 
 ## BlockUtils
 
-Возвращает PointerClass
+Возвращает PointerClass на LegacyBlock
 ```js
 BlockUtils.getBlockById(id);
 ```
-Возвращает PointerClass
+Возвращает PointerClass на BlockState
 ```js
 BlockUtils.getBlockStateForIdData(id, data);
 ```
@@ -384,7 +386,7 @@ new Injector(pointer);
 new Injector(PointerClass);
 ```
 
-Возвращает класс Offset
+Оффсет класса в библиотеке, полезно, например, для поиска необходимого диассемблированного кода
 ```js
 <injector>.getOffset();
 <injector>.getOffset(offset);
@@ -438,14 +440,21 @@ new Injector();
 ```
 
 ## Offset
-Класс позволяет получать значения по оффсету
+Класс позволяет получать поля класса по оффсету.
 
 ```js
+<offset>.setOffset(offset);
+// получение целочисленного значения
 <offset>.getInt(offset);
-<offset>.getPointer(offset);
-<offset>.getBool(offset);
-<offset>.getString(offset);
+// получения числа с плавающей точкой
 <offset>.getFloat(offset);
+// получение ссылки на значение
+<offset>.getPointer(offset);
+// получение булевого значения
+<offset>.getBool(offset);
+// получение строкового значения
+<offset>.getString(offset);
+// освобождение памяти, дальнейшее использование невозможно
 <offset>.free();
 ```
 
