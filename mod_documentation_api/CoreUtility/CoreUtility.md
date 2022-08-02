@@ -1,184 +1,176 @@
 # Core Utility
 ## Область применения
-Область применения ядра досточно большая, даже не смотря на то что ядро досточно молодое.
-Ядро имеет возможность хукать и вызывать ванильнные методы из js, что значительно увеличивает возможности моддинга.
+Ядро создано для создания хуков (овверайда, перезаписывания результаты выполнения методов в нативе) и вызова ванильных методы из JavaScript/TypeScript, что значительно упрощает интеграции небольшого количества методов с нативом.
 
 + Декларации
-    + core-utility.d.ts - декларация на англиском
+    + [core-utility.d.ts](core-utility.d.ts) - для использования в редакторах на процессоре TypeScript
 
 ## ToolTip
-Добавляет tool tip предмету
+Под предметом отображаются дополнительные данные, например количество энергии или категория предмета. Все это можно реализовать с помощью подсказок.
+
+Добавление подсказки предмету (сюда же входят и блоки, при регистрации для них также создается предмет)
 ```js
 ToolTip.addToolTip(id, data, name);
 ```
 
-Добавляет динамический tool tip 
+Добавление динамической подсказки (перед основным текстом)
 ```js
-ToolTip.addDynamicPre(id, data, function(item){
-
+ToolTip.addDynamicPre(id, data, function(item) {
+    return Translation.translate("tool.unique_artifact.formatter");
 });
 ```
-Добавляет динамический tool tip 
+Добавление динамической подсказки (после основного текста)
 ```js
-ToolTip.addDynamicPost(id, data, function(item){
-    
+ToolTip.addDynamicPost(id, data, function(item) {
+    return Translation.translate("tool.unique_artifact.name");
 });
 ```
 
-Добавляет несколько tool tip предмету
+Добавление нескольких подсказок
 ```js
 ToolTip.addToolTips(id, data, names);
 ```
 
-Удаляет tool tip
+Удаление определенной подсказки
 ```js
 ToolTip.deletToolTip(id, data, names);
 ```
 
-Очищает tool tip предмета
+Очищение добавленных ранее подсказок
 ```js
 ToolTip.clearToolTip(id, data);
 ```
 
-Возврвщает tool tip предмета
+Получение массива из всех добавленных подсказок
 ```js
 ToolTip.getToolTips(id, data);
 ```
-Очищает все tool tip
+
+Очистка __всех__ добавленных подсказок
 ```js
 ToolTip.clearToolTips();
 ```
 
 ## NativeAPI
-Типы конвертации id
+Вспомогательный класс для вызова основных методов конвертации идентификаторов между средой выполнения (runtime-значениями) и скриптом.
+
+Идентификаторы могут быть нескольких видов, для предмета и блока они должны указываться соответственно
 ```js
 ConversionType.ITEM
 ConversionType.BLOCK
 ```
 
-Преобразовывает динамический в статический id
+Преобразовывает динамический идентификатор в статический
 ```js
 NativeAPI.dynamicToStatic(id, type);
 ```
 
-Преобразовывает статическиq в динамический id
+Преобразовывает статический идентификатор в динамический
 ```js
 NativeAPI.staticToDynamic(id, type);
 ```
 
-Возвращает уникальный индентификатор моба по поинтеру класса
+Возвращает уникальный идентификатор моба по ссылке на класс
 ```js
 NativeAPI.getActorID(actor);
 ```
 
-Возвращает класс моба по индентификатор моба
+Возвращает класс моба по его индентификатору
 ```js
 NativeAPI.getActorById(id);
 ```
 
-## Ванильные классы, вступление
-Для не большого упрощения использования ядра ванильные классы наследуются от PointerClass
+## Ванильные классы
+Для небольшого упрощения использования ядра, ванильные классы наследуются от PointerClass.
 
-Возвращает поинтер класса
+Возвращает ссылку на класс
 ```js
 <pointerClass>.getPointer();
 ```
 
 ## BlockPos
-* наследован от PointerClass
+* наследуется от PointerClass
 
 ```js
 new BlockPos(pointer);
 new BlockPos(x, y, z);
 ```
-
 ```js
 <blockPos>.getX();
 <blockPos>.getY();
 <blockPos>.getZ();
 ```
-
 ```js
 <blockPos>.setX(x);
 <blockPos>.setY(y);
 <blockPos>.setZ(z);
 ```
-
 ```js
 <blockPos>.free();
 ```
 
 ## Vec3
-* наследован от PointerClass
+* наследуется от PointerClass
 
 ```js
 new Vec3(pointer);
 new Vec3(x, y, z);
 ```
-
 ```js
 <vec3>.getX();
 <vec3>.getY();
 <vec3>.getZ();
 ```
-
 ```js
 <vec3>.setX(x);
 <vec3>.setY(y);
 <vec3>.setZ(z);
 ```
-
 ```js
 <vec3>.free();
 ```
 
 ## Vec2
-* наследован от PointerClass
+* наследуется от PointerClass
 
 ```js
 new Vec2(pointer);
 new Vec2(x, y);
 ```
-
 ```js
 <vec2>.getX();
 <vec2>.getY();
 ```
-
 ```js
 <vec2>.setX(x);
 <vec2>.setY(y);
 ```
-
 ```js
 <vec2>.free();
 ```
 
 ## ChunkPos
-* наследован от PointerClass
+* наследуется от PointerClass
 
 ```js
 new ChunkPos(pointer);
 new ChunkPos(x, z);
 ```
-
 ```js
 <ChunkPos>.getX();
 <ChunkPos>.getZ();
 ```
-
 ```js
 <ChunkPos>.setX(x);
 <ChunkPos>.setZ(z);
 ```
-
 ```js
 <ChunkPos>.free();
 ```
 
 ## ItemsUtil
 
-Возвращает PointerClass по динамическому id предмета
+Возвращает PointerClass по динамическому идентификатору предмета
 ```js
 ItemsUtil.getItemById(id);
 ```
@@ -194,130 +186,149 @@ ItemsUtil.overrideArmorValue(id, value);
 ```
 
 ## EntityRegister
-Добавляет прослушиватель тика на моба, по текстовому id предмета(minecraft:zombie<>)
-```js
-EntityRegister.setHandlerTick(name, function(ent){
 
+Добавляет хандлер тика на моба, по текстовому идентификатору (например, minecraft:zombie<>, где <> - дополнительные данные для моба, возраст и т.п.)
+```js
+EntityRegister.setHandlerTick(name, function(ent) {
+    // моб улетит нахуй в ебеня
+    Entity.setVelocity(ent, 0, 0.0005, 0);
 });
 ```
 
 ## Gui
-Проигрывавает анимацию разрушения блока
+
+Проигрывавает анимацию разрушения блока на заданных координатах
 ```js
 Gui.animationDestroy(x, y, z, speed);
 ```
 
 ## TickingAreasManager
+[Активная область (англ. Ticking area)](https://minecraft.fandom.com/ru/wiki/%D0%90%D0%BA%D1%82%D0%B8%D0%B2%D0%BD%D0%B0%D1%8F_%D0%BE%D0%B1%D0%BB%D0%B0%D1%81%D1%82%D1%8C) — это определённая игроком группа чанков, которые продолжают обновляться, даже если рядом нет игрока. Служит для управления заданными областями и создания новых.
 
-Проверяет естли область загрузки
+Проверяет существуют ли активные области
 ```js
 TickingAreasManager.hasActiveAreas();
 ```
 
-Добавляет область загрузки
+Добавляет сферическую активную область с определенным радиусом вокруг координат
 ```js
 TickingAreasManager.addArea(dimension, name, x, y, z, range);
 ```
 
-Добавляет область загрузки
+Добавляет параллелепипедную активную область между координатами
 ```js
-TickingAreasManager.addAreaPostions(dimension, name, x1, y1, z1, x2, y2, z2);
+TickingAreasManager.addAreaPositions(dimension, name, x1, y1, z1, x2, y2, z2);
 ```
-Добавляет область загрузки, привязывает её к мобу
+
+Добавляет активную область для моба из измерения, это означает что моб будет сам прогружать область вокруг себя, например, так работает жемчуг края
 ```js
 TickingAreasManager.addEntityArea(dimension, entity);
 ```
 
-Возвращает количество областей загрзки
+Возвращает количество активных областей для всего мира в целом, они добавляются с помощью команд, в ограничении 10
 ```js
 TickingAreasManager.countStandaloneTickingAreas();
 ```
 
-Возвращает количество областей загрзки в измерении
+Возвращает количество активных областей в конкретном измерении
 ```js
 TickingAreasManager.countPendingAreas(dimension);
 ```
 
 ## FileUtils
-Нативный модуль для работы с файлами
+Нативный модуль для работы с файлами, упрощает работу с большим количеством контента.
 
 ```js
+// удаляет всю папку целиком со всем содержимым
 FileUtils.deleteDirectory(path);
+// удаляет только содержимое, оставляя папку
 FileUtils.deleteDirectoryContents(path);
+// удаляет папку если она пуста
 FileUtils.deleteEmptyDirectory(dir);
+// удаляет конкретный файл
 FileUtils.deleteFile(file);
-FileUtils.renameDirectory(old_name, new_name);
-FileUtils.renameFile(old_name, new_name);
+// переименовывает папку
+FileUtils.renameDirectory(oldName, newName);
+// переименовывает файл
+FileUtils.renameFile(oldName, newName);
+// копирует всю папку, включая файлы в ней
 FileUtils.copyDirectory(from, to); 
+// проверяет существует ли файл
 FileUtils.fileExists(file);
+// проверяет существует ли папка
 FileUtils.directoryExists(dir);    
+// проверяет может ли на пути размещаться файл или папка
 FileUtils.isValidPath(path);
+// проверяет является ли путь относительным папки игры
 FileUtils.isRelativePath(path);
-FileUtils.isExists(path_or_file);
+// проверяет существует ли файл или папка
+FileUtils.isExists(pathOrFile);
+// создает папку на заданном пути
 FileUtils.createDirectory(path);
+// создает папку, в который помещается файл, который был по этому пути раньше
 FileUtils.createDirectoryForFile(path);
 ```
 
 ## World
+Используется для управления списком миров, может быть добавлен любой путь, непредусмотренный самой игрой, например, миры для определенной сборки.
 
-Добавляет мир в список миров
+Добавляет путь в список миров
 ```js
 World.addWorldToCache(path);
 ```
 
-Обновляет список миров
+Обновляет список миров, используйте для визуального изменения если игра уже загружена
 ```js
 World.updateWorlds();
 ```
 
-Возвращает список миров
+Возвращает количество миров в списке, учитываются только валидные, т.е. если мир поврежден, в это количество он входить не будет
 ```js
 World.getWorldsCount();
 ```
 
-
 ## Random
-* наследован от PointerClass
+* наследуется от PointerClass
 
-Генерирует рандомное число
+Генерирует случайное число до предела `max`
 ```js
 <random>.nextInt(max);
 ```
 
 ## Level
-* наследован от PointerClass
+* наследуется от PointerClass
 
-Возвращает класс  Random
+Возвращает класс Random
 ```js
-<level>.getRandom(max);
+<level>.getRandom();
 ```
 
 ## Options
-* наследован от PointerClass
+* наследуется от PointerClass
 
-Возвращет тип интерфейса
+Возвращает тип интерфейса - 0 для карманного интерфейса, 1 для стандартного
 ```js
 <options>.getUiProfile();
 ```
 
 ## GuiData
-* наследован от PointerClass
+* наследуется от PointerClass
 
-Вывводит сообщение Title
+Выводит сообщение заголовка (эквивалентная команда /title <actorUid> title)
 ```js
 <guiData>.setTitle(name);
 ```
-Вывводит сообщение Subtitle
+Выводит сообщение подзаголовка (эквивалентная команда /title <actorUid> subtitle)
 ```js
 <guiData>.setSubtitle(name);
 ```
-Вывводит сообщение ActionMessage
+Выводит сообщение взаимодействия (эквивалентная команда /title <actorUid> actionbar)
 ```js
 <guiData>.setActionMessage(name);
 ```
 
 ## ClientInstance
-* наследован от PointerClass
+* наследуется от PointerClass
 
 Возвращает Options
 ```js
@@ -327,52 +338,55 @@ World.getWorldsCount();
 ```js
 <ClientInstance>.getGuiData();
 ```
-Воспроизводит анимацию ломания блока
+
+Воспроизводит анимацию разрушения блока на заданных координатах
 ```js
-<ClientInstance>.renderDestroyBlock(x, y, z, speed);
+Gui.renderDestroyBlock(x, y, z, speed);
 ```
 
 ## GlobalContext
+
 Возвращает ClientInstance
 ```js
-<globalContext>.getClientInstance();
+GlobalContext.getClientInstance();
 ```
-Возвращает Level
+Возвращает Level для сервера
 ```js
-<globalContext>.getServerLevel();
+GlobalContext.getServerLevel();
 ```
-Возвращает Level
+Возвращает Level для клиента
 ```js
-<globalContext>.getLevel();
+GlobalContext.getLevel();
 ```
 
 ## BlockUtils
 
-Возврвщает PointerClass
+Возвращает PointerClass на LegacyBlock
 ```js
 BlockUtils.getBlockById(id);
 ```
-
-Возврвщает PointerClass
+Возвращает PointerClass на BlockState
 ```js
 BlockUtils.getBlockStateForIdData(id, data);
 ```
 
 # Продвинутые возможности
-## Вступление
-Каждый метод в майнкрафте имеет свой уникальный индентификатор, символ по нему можно добавлять хуки(прослушиватель) на метод, ну или вызвать метод.<br/>
-Где узнать символ метода?<br/>
-На телефоне можно в приложении Disassembler<br/>
+Каждый метод в Майнкрафте имеет свой уникальный индентификатор (символ), по нему можно добавлять хуки (прослушиватели) на метод, ну или просто вызвать его.
 
-### Injector
-Создан для работы с ванильнными классами
+> Где узнать символ метода?\
+[IDA Pro – Hex Rays](https://hex-rays.com/IDA-pro/) - Windows, Linux, macOS\
+[Ghidra Software Reverse Engineering Framework](https://github.com/NationalSecurityAgency/ghidra) - Windows, Linux, macOS\
+[Disassembler - Viewer, Dumper](https://play.google.com/store/apps/details?id=com.mcal.disassembler) - Android
+
+## Injector
+Создан для работы с ванильными классами, позволяет вызывать методы и получать значения из них. Рекомендуется очищать, если последующее использование не предусмотрено. Может быть вызван на основе ссылки на экземпляр объекта.
 
 ```js
 new Injector(pointer);
 new Injector(PointerClass);
 ```
 
-Возвращет класс Offset
+Оффсет класса в библиотеке, полезно, например, для поиска необходимого диассемблированного кода
 ```js
 <injector>.getOffset();
 <injector>.getOffset(offset);
@@ -380,86 +394,94 @@ new Injector(PointerClass);
 
 Вызывает ванильный метод
 ```js
-<injector>.call(symbol, parametrs, table);
+<injector>.call(symbol, parameters, table);
 ```
-Вызывает ванильный метод, и возвразает число
+Вызывает ванильный метод, возвращает целочисленное значение
 ```js
-<injector>.getIntResult(symbol, parametrs, table);
+<injector>.getIntResult(symbol, parameters, table);
 ```
-Вызывает ванильный метод, и возвразает число
+Вызывает ванильный метод, возвращает число с плавающей точкой
 ```js
-<injector>.getFloatResult(symbol, parametrs, table);
+<injector>.getFloatResult(symbol, parameters, table);
 ```
-Вызывает ванильный метод, и возвразает bool
+Вызывает ванильный метод, возвращает булевое значение
 ```js
-<injector>.getBoolResult(symbol, parametrs, table);
+<injector>.getBoolResult(symbol, parameters, table);
 ```
-Вызывает ванильный метод, и возвразает строку
+Вызывает ванильный метод, возвращает строку
 ```js
-<injector>.getStringResult(symbol, parametrs, table);
+<injector>.getStringResult(symbol, parameters, table);
 ```
-Вызывает ванильный метод, и возвразает поинтер на класс
+Вызывает ванильный метод, возвращает ссылку на класс
 ```js
-<injector>.getPointerResult(symbol, parametrs, table);
+<injector>.getPointerResult(symbol, parameters, table);
 ```
 
-Заменяет метод класса на другой
+Заменяет конкретный метод класса на любой другой
 ```js
-<injector>.replace(table, methot, symbol);
+<injector>.replace(vtable, method, symbol);
 ```
 
-Очищает инжектор из памяти
+Освобождает память, дальнейшее взаимодействие с этим объектом недоступно
 ```js
 <injector>.free();
 ```
 
-Устанавливает из какой нативной библиотеки будет вызыватся метод
+Устанавливает название ванильной библиотеки, откуда вызывается метод
 ```js
 <injector>.setLib(name);
 ```
 
 ### Вызов статичных методов
-Вызов статичных методов происходит также, но необходмо вызывать пустой конструктор
+Если экземпляра нет и быть не может, но метод является статичным.
+Вызов таких методов происходит с помощью пустого конструктора
 ```js
 new Injector();
 ```
 
-### Offset
-Класс позволяет получать значения в классе по offset
+## Offset
+Класс позволяет получать поля класса по оффсету.
 
 ```js
+<offset>.setOffset(offset);
+// получение целочисленного значения
 <offset>.getInt(offset);
-<offset>.getPointer(offset);
-<offset>.getBool(offset);
-<offset>.getString(offset);
+// получения числа с плавающей точкой
 <offset>.getFloat(offset);
+// получение ссылки на значение
+<offset>.getPointer(offset);
+// получение булевого значения
+<offset>.getBool(offset);
+// получение строкового значения
+<offset>.getString(offset);
+// освобождение памяти, дальнейшее использование невозможно
 <offset>.free();
 ```
 
-### Хуки
-+ 1 - создайте в декриктории мода файл hooks.json
-+ 2 - напишите туда объект описание хука
-+ 3 - добавьте кэлбэк хука(всегда первым параметрам controller, а вторым указатель на хукнутый класс)
+## Хуки
+1. Создайте в папке мода файл `hooks.json`.
+2. Запишите туда объект-описание хука.
+3. Добавьте калбек хука в скрипт (первым параметром всегда будет controller, а вторым указатель на хукнутый класс; только после идут заданные параметры).
 
-Объект описания
 ```json
 {
-    "symbol": "...",
-    "callback": "CallbackName",
-    "args": [],//по умолчанию []
-    "lib":"mcpe",//по умолчанию mcpe
-    "return":"bool"//по умолчанию void
+    "symbol": "<symbol>",
+    "callback": "<callbackName>",
+    "args": [], // по умолчанию []
+    "lib": "mcpe", // по умолчанию mcpe
+    "return": "bool" // по умолчанию void
 }
 ```
-+ Возвращемые типы даннх
-    + stl::strin
-    + void - принимает поинтер на класс
+
++ Возвращаемые типы данных
+    + stl::string
+    + void - принимает ссылку на класс
     + int
     + float
     + bool
 
-+ Аргументы типы даннх
-    + stl::strin
++ Аргументы типы данных
+    + stl::string
     + int
     + float
     + ptr
@@ -468,16 +490,17 @@ new Injector();
     + Vec3
     + ChunkPos
 
+> Для остальных типов данных возможно использование ссылки на объект `ptr`. Также, не забывайте заменять `<symbol>` на конкретный символ, который необходимо овверайднуть, а `<callbackName>` на калбек, который будет вызван в результате выполнения метода.
 
 # Примеры использования
-+ Модификаии
-    + TimeWand
-    + NotBurningMobs
-    + Faster Ladder Climbing
++ Модификации
+    + [TimeWand](https://icmods.mineprogramming.org/mod?id=881)
+    + [NotBurningMobs](https://icmods.mineprogramming.org/mod?id=872)
+    + [Faster Ladder Climbing](https://icmods.mineprogramming.org/mod?id=869)
 
-Пример Injector, при нажатии на блок будет вызывать его randomTick
+1. Пример Injector, при нажатии на блок вызывается его randomTick
 ```js
-function getNativeBlock(region, x, y, z){
+function getNativeBlock(region, x, y, z) {
     let injector = new Injector(region.getPointer()).setArgsType(["ptr"]);
     let pos = new BlockPos(x, y, z);
     let block = injector.getPointerResult("_ZNK11BlockSource8getBlockERK8BlockPos", [
@@ -487,7 +510,8 @@ function getNativeBlock(region, x, y, z){
     pos.free();
     return block;
 }
-function randomTick(block, x, y, z, region){
+
+function randomTick(block, x, y, z, region) {
     let injector = new Injector(block).setArgsType(["ptr", "ptr", "ptr"]);
     let pos = new BlockPos(x, y, z);
     injector.call("_ZNK5Block10randomTickER11BlockSourceRK8BlockPosR6Random", [
@@ -498,33 +522,34 @@ function randomTick(block, x, y, z, region){
     pos.free();
     injector.free();
 }
-Callback.addCallback("ItemUse", function(pos, item, block, is, player){
+
+Callback.addCallback("ItemUse", function(pos, item, block, is, player) {
     let region = BlockSource.getDefaultForActor(player);
     randomTick(getNativeBlock(region, pos.x, pos.y, pos.z), pos.x, pos.y, pos.z, region);
 });
 ```
 
-Пример Offset, при нажатии на блок создаст экземпляр BlockPos, и получит из класса по оофсету координаты
+2. Пример Offset, при нажатии на блок будет получен экземпляр BlockPos, в котором есть координаты по оффсету
 ```js
-Callback.addCallback("ItemUse", function(coords, item, block, is, player){
+Callback.addCallback("ItemUse", function(coords, item, block, is, player) {
     let pos = new BlockPos(coords.x, coords.y, coords.z);
     let injector = new Injector(pos);
     let offset = injector.getOffset();
-    alert(offset.getInt(0)+" "+offset.getInt(4)+" "+offset.getInt(8));
+    alert(offset.getInt(0) + " " + offset.getInt(4) + " " + offset.getInt(8));
     pos.free();
     injector.free();
 });
 ```
 
-Пример хука
+3. Пример с хуком, изменим логику для определения времени суток, в этом случае, мобы начнут гореть на солнце независимо от времени суток
 ```json
 [
     {
-        "symbol":"_ZNK9Dimension5isDayEv",
-        "callback":"Dimension.isDay",
-        "args":[],
-        "priority":"pre",
-        "return":"bool"
+        "symbol": "_ZNK9Dimension5isDayEv",
+        "callback": "Dimension.isDay",
+        "args": [],
+        "priority": "pre",
+        "return": "bool"
     }
 ]
 ```
