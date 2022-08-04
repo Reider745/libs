@@ -902,7 +902,7 @@ interface IScale {
     isDisplay?: boolean;
 }
 
-class PlayerScale {
+declare class PlayerScale {
     constructor(ptr: number);
     /**
      * Returns halfes of scale amount.
@@ -928,7 +928,7 @@ class PlayerScale {
     getType(): any;
 }
 
-class Scale {
+declare class Scale {
     constructor(java: any);
     /**
      * Sets scale is displayed on screen.
@@ -996,8 +996,8 @@ declare interface CoreUtilityAPI {
     Vec2: Vec2,
     ChuckPos: ChunkPos,
     BlockUtils: IBlockUtils,
-    BlockRegistry: BlockRegistry,
-    Scales: Scales,
+    BlockRegistry: IBlockRegistry,
+    Scales: IScales,
     version: number,
     /**
      * Performs requested action in context of core script, used to access specific fields.
