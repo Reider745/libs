@@ -1,6 +1,6 @@
 # Core Utility
 ## Область применения
-Ядро создано для создания хуков (овверайда, перезаписывания результаты выполнения методов в нативе) и вызова ванильных методы из JavaScript/TypeScript, что значительно упрощает интеграции небольшого количества методов с нативом.
+Ядро создано для создания хуков (овверайда, перезаписывания результатов выполнения методов в нативе) и вызова ванильных методов из JavaScript/TypeScript, что значительно упрощает интеграции небольшого количества методов с нативом.
 
 + Декларации
     + [core-utility.d.ts](core-utility.d.ts) - для использования в редакторах на процессоре TypeScript
@@ -78,128 +78,6 @@ NativeAPI.getActorID(actor);
 Возвращает класс моба по его индентификатору
 ```js
 NativeAPI.getActorById(id);
-```
-
-## Ванильные классы
-Для небольшого упрощения использования ядра, ванильные классы наследуются от PointerClass.
-
-Возвращает ссылку на класс
-```js
-<pointerClass>.getPointer();
-```
-
-## BlockPos
-* наследуется от PointerClass
-
-```js
-new BlockPos(pointer);
-new BlockPos(x, y, z);
-```
-```js
-<blockPos>.getX();
-<blockPos>.getY();
-<blockPos>.getZ();
-```
-```js
-<blockPos>.setX(x);
-<blockPos>.setY(y);
-<blockPos>.setZ(z);
-```
-```js
-<blockPos>.free();
-```
-
-## Vec3
-* наследуется от PointerClass
-
-```js
-new Vec3(pointer);
-new Vec3(x, y, z);
-```
-```js
-<vec3>.getX();
-<vec3>.getY();
-<vec3>.getZ();
-```
-```js
-<vec3>.setX(x);
-<vec3>.setY(y);
-<vec3>.setZ(z);
-```
-```js
-<vec3>.free();
-```
-
-## Vec2
-* наследуется от PointerClass
-
-```js
-new Vec2(pointer);
-new Vec2(x, y);
-```
-```js
-<vec2>.getX();
-<vec2>.getY();
-```
-```js
-<vec2>.setX(x);
-<vec2>.setY(y);
-```
-```js
-<vec2>.free();
-```
-
-## ChunkPos
-* наследуется от PointerClass
-
-```js
-new ChunkPos(pointer);
-new ChunkPos(x, z);
-```
-```js
-<ChunkPos>.getX();
-<ChunkPos>.getZ();
-```
-```js
-<ChunkPos>.setX(x);
-<ChunkPos>.setZ(z);
-```
-```js
-<ChunkPos>.free();
-```
-
-## ItemsUtil
-
-Возвращает PointerClass по динамическому идентификатору предмета
-```js
-ItemsUtil.getItemById(id);
-```
-
-Заменяет имя предмету
-```js
-ItemsUtil.overrideName(id, data, name);
-```
-
-Заменяет защиту брони
-```js
-ItemsUtil.overrideArmorValue(id, value);
-```
-
-## EntityRegister
-
-Добавляет хандлер тика на моба, по текстовому идентификатору (например, minecraft:zombie<>, где <> - дополнительные данные для моба, возраст и т.п.)
-```js
-EntityRegister.setHandlerTick(name, function(ent) {
-    // моб улетит нахуй в ебеня
-    Entity.setVelocity(ent, 0, 0.0005, 0);
-});
-```
-
-## Gui
-
-Проигрывавает анимацию разрушения блока на заданных координатах
-```js
-Gui.animationDestroy(x, y, z, speed);
 ```
 
 ## TickingAreasManager
@@ -302,6 +180,22 @@ World.getWorldsCount();
 ```js
 <level>.getRandom();
 ```
+Добавляет существо в мир по заданному неймспейсу
+```js
+addEntity(source, x, y, z, namespace);
+```
+Возвращает отступ по времени от создания мира (1 тик = 1/20с)
+```js
+getCurrentTick();
+```
+Возвращает серверный отступ по времени от создания мира (1 тик = 1/20с)
+```js
+getCurrentServerTick();
+```
+Вовзвращает количество чанков, прогружаемых вокруг игроков
+```js
+getChunkTickRange();
+```
 
 ## Options
 * наследуется от PointerClass
@@ -337,6 +231,14 @@ World.getWorldsCount();
 Возвращает GuiData
 ```js
 <ClientInstance>.getGuiData();
+```
+Проигрывавает партикли разрушения блока на заданных координатах
+```js
+<ClientInstance>.renderDestroyBlock(x, y, z, speed);
+```
+Устанавливает камеру локального игрока на другое существо
+```js
+<ClientInstance>.setCameraEntity(entity);
 ```
 
 ## GlobalContext
@@ -414,7 +316,7 @@ new Injector(PointerClass);
 
 Заменяет конкретный метод класса на любой другой
 ```js
-<injector>.replace(vtable, method, symbol);
+<injector>.replace(table, method, symbol);
 ```
 
 Освобождает память, дальнейшее взаимодействие с этим объектом недоступно
@@ -440,15 +342,13 @@ new Injector();
 ```js
 <offset>.setOffset(offset);
 // получение целочисленного значения
-<offset>.getInt(offset);
+<offset>.getInt(offset?);
 // получения числа с плавающей точкой
-<offset>.getFloat(offset);
+<offset>.getFloat(offset?);
 // получение ссылки на значение
-<offset>.getPointer(offset);
-// получение булевого значения
-<offset>.getBool(offset);
+<offset>.getPointer(offset?);
 // получение строкового значения
-<offset>.getString(offset);
+<offset>.getString(offset?);
 // освобождение памяти, дальнейшее использование невозможно
 <offset>.free();
 ```
@@ -554,3 +454,127 @@ Callback.addCallback("Dimension.isDay", function(controller, self){
     controller.setResult(false);
 });
 ```
+
+# Нативные классы
+Для небольшого упрощения использования ядра, ванильные классы наследуются от PointerClass.
+
+Возвращает ссылку на класс
+```js
+<pointerClass>.getPointer();
+```
+
+## ItemsUtil
+
+Возвращает PointerClass по динамическому идентификатору предмета
+```js
+ItemsUtil.getItemById(id);
+```
+
+Заменяет имя предмету
+```js
+ItemsUtil.overrideName(id, data, name);
+```
+
+Заменяет защиту брони
+```js
+ItemsUtil.overrideArmorValue(id, value);
+```
+
+## EntityRegister
+
+Добавляет хандлер тика на моба, по текстовому идентификатору (например, minecraft:zombie<>, где <> - дополнительные данные для моба, возраст и т.п.)
+```js
+EntityRegister.setHandlerTick(name, function(ent) {
+    // моб ускорится вверх и/или вся семья мобов
+    Entity.setVelocity(ent, 0, 0.0005, 0);
+});
+```
+
+## BlockPos
+* наследуется от PointerClass
+
+```js
+new BlockPos(pointer);
+new BlockPos(x, y, z);
+```
+```js
+<blockPos>.getX();
+<blockPos>.getY();
+<blockPos>.getZ();
+```
+```js
+<blockPos>.setX(x);
+<blockPos>.setY(y);
+<blockPos>.setZ(z);
+```
+```js
+<blockPos>.free();
+```
+
+## Vec3
+* наследуется от PointerClass
+
+```js
+new Vec3(pointer);
+new Vec3(x, y, z);
+```
+```js
+<vec3>.getX();
+<vec3>.getY();
+<vec3>.getZ();
+```
+```js
+<vec3>.setX(x);
+<vec3>.setY(y);
+<vec3>.setZ(z);
+```
+```js
+<vec3>.free();
+```
+
+## Vec2
+* наследуется от PointerClass
+
+```js
+new Vec2(pointer);
+new Vec2(x, y);
+```
+```js
+<vec2>.getX();
+<vec2>.getY();
+```
+```js
+<vec2>.setX(x);
+<vec2>.setY(y);
+```
+```js
+<vec2>.free();
+```
+
+## ChunkPos
+* наследуется от PointerClass
+
+```js
+new ChunkPos(pointer);
+new ChunkPos(x, z);
+```
+```js
+<ChunkPos>.getX();
+<ChunkPos>.getZ();
+```
+```js
+<ChunkPos>.setX(x);
+<ChunkPos>.setZ(z);
+```
+```js
+<ChunkPos>.free();
+```
+
+## Gui
+
+Проигрывавает анимацию разрушения блока на заданных координатах
+```js
+Gui.animationDestroy(x, y, z);
+```
+
+> Часть методов с документацией доступна в файле деклараций [core-utility.d.ts](core-utility.d.ts).
