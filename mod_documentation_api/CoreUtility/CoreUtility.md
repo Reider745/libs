@@ -339,11 +339,6 @@ World.getWorldsCount();
 <ClientInstance>.getGuiData();
 ```
 
-Воспроизводит анимацию разрушения блока на заданных координатах
-```js
-Gui.renderDestroyBlock(x, y, z, speed);
-```
-
 ## GlobalContext
 
 Возвращает ClientInstance
