@@ -635,13 +635,37 @@ declare class Random extends PointerClass {
      */
     nextInt(max: number): number;
 }
+
 declare class NativeLevel extends PointerClass {
+    constructor(ptr: number);
     /**
      * Random number generator based on world seed.
      * @returns Random Instance
      */
     getRandom(): Random;
+    /**
+     * Spawns namespaced entity by required source.
+     * @param source Source to be spawn in
+     * @param x Absolute X
+     * @param y Absolute Y
+     * @param z Absolute Z
+     * @param namespace Entity, such as `minecraft:zombie<>`
+     */
+    addEntity(source: BlockSource, x: number, y: number, z: number, namespace: string): void;
+    /**
+     * Returns time offset (tick = 1/20s).
+     */
+    getCurrentTick(): number;
+    /**
+     * Returns server time offset (tick = 1/20s).
+     */
+    getCurrentServerTick(): number;
+    /**
+     * Returns tick range in world option.
+     */
+    getChunkTickRange(): number;
 }
+
 declare class Dimension extends PointerClass {}
 declare class Player extends PointerClass {}
 declare class LocalPlayer extends Player {}
@@ -680,9 +704,17 @@ declare class ClientInstance extends PointerClass {
      */
     getOptions(): Options;
     /**
-     * Currently, access to /title command data.
+     * Currently, access to /title command data directly.
      */
     getGuiData(): GuiData;
+    /**
+     * Called by Minecraft before block breaked, emits particles.
+     * @param x Block X
+     * @param y Block Y
+     * @param z Block Z
+     * @param speed Speed, `1.0` - 20 ticks
+     */
+    renderDestroyBlock(x: number, y: number, z: number, speed: number): void;
 }
 
 declare interface IGlobalContext {
