@@ -384,6 +384,8 @@ new Injector();
     + Vec2
     + Vec3
     + ChunkPos
+    + BlockSource
+    + CompoundTag
 
 > Для остальных типов данных возможно использование ссылки на объект `ptr`. Также, не забывайте заменять `<symbol>` на конкретный символ, который необходимо овверайднуть, а `<callbackName>` на калбек, который будет вызван в результате выполнения метода.
 
@@ -391,6 +393,7 @@ new Injector();
 + Модификации
     + [TimeWand](https://icmods.mineprogramming.org/mod?id=881)
     + [NotBurningMobs](https://icmods.mineprogramming.org/mod?id=872)
+    + [Combination Lock](https://icmods.mineprogramming.org/mod?id=883)
     + [Faster Ladder Climbing](https://icmods.mineprogramming.org/mod?id=869)
 
 1. Пример Injector, при нажатии на блок вызывается его randomTick
@@ -452,6 +455,50 @@ Callback.addCallback("ItemUse", function(coords, item, block, is, player) {
 Callback.addCallback("Dimension.isDay", function(controller, self){
     controller.replace();
     controller.setResult(false);
+});
+```
+
+4. Пример с установкой силы редстоун сигнала, при нажатии палкой по блоку, установит ему силу редстоун сигнала
+```js
+function getDimension(region){
+	let injector = new Injector(region.getPointer());
+	let dimension = injector.getPointerResult("_ZN11BlockSource12getDimensionEv");
+	injector.free();
+	return dimension;
+}
+
+function getCircuitSystem(region){
+	let injector = new Injector(getDimension(region));
+	let system = injector.getPointerResult("_ZN9Dimension16getCircuitSystemEv");
+	injector.free();
+	return system;
+}
+let cache = {};
+function redstoneUpdate(region, x, y, z, strength){
+	let system = cache[region.getDimension()];
+	if(!system){
+		cache[region.getDimension()] = getCircuitSystem(region);
+		system = cache[region.getDimension()];
+	}
+	let injector = new Injector(system);
+	let pos = new BlockPos(x, y, z);
+	injector.setArgsType(["ptr", "int"]).call("_ZN13CircuitSystem11setStrengthERK8BlockPosi", [
+		Parameter.getPointer(pos),
+		Parameter.getInt(strength||10)
+	]);
+	injector.free();
+	pos.free();
+}
+Callback.addCallback("ItemUse", function(pos, item, block, is, player){
+    if(item.id == 280)
+        Updatable.addUpdatable({
+            tick: 0,
+            update(){
+                if(this.tick >= 20)
+                    this.remove = true;
+                redstoneUpdate(BlockSource.getDefaultForActor(player), pos.x, pos.y, pos.z, 5);
+            }
+        })
 });
 ```
 
@@ -578,3 +625,25 @@ Gui.animationDestroy(x, y, z);
 ```
 
 > Часть методов с документацией доступна в файле деклараций [core-utility.d.ts](core-utility.d.ts).
+
+
+# Описание обновлений Core Utility
+
++ Alpha 2.0.0
+    + добавлена возможность вызывать методы с аргументами в Injector
+    + добавлено возможность получения значений класса по offset
+    + Добавлен модуль ToolTip
+    + Добавлена возможность создавать шкалы(на данный момент документация отстусвует)
+    + добавлен в api переменная vesion, в этой версии имеет значение 2
+    + добавлен модуль FileAPI
+    + добавлен метод injector.replace(table,symbol,replaceSymbol)
+
+
++ Alpha 2.1.0
+    + фикс краша от ToolTip
+    + фикс методов free
+    + использование методов free не обязательно(но рекомендуется вызывать в ручную)
+    + добавлен метод injector.setArgsType(String...)
+    + добавлен метод item.setIsMirroredArt(boolean)
+    + добавлен тип в параметры инжектора long
+    + добавлена возможность получать float по offset getFloat()
