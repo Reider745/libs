@@ -80,6 +80,19 @@ NativeAPI.getActorID(actor);
 NativeAPI.getActorById(id);
 ```
 
+## ActorDamageCause
+Создаёт экземпляр класса ActorDamageCauseб id это id будующего урона(можно заменить ванильные типы)
+```js
+new ActorDamageCause(id);
+```
+
+Устанавливает сообщение смерти
+```js
+<ActorDamageCause>.setDeadMessage(function(type, name_player, attacker){
+    return "Kill "+name_player;
+});
+```
+
 ## TickingAreasManager
 [Активная область (англ. Ticking area)](https://minecraft.fandom.com/ru/wiki/%D0%90%D0%BA%D1%82%D0%B8%D0%B2%D0%BD%D0%B0%D1%8F_%D0%BE%D0%B1%D0%BB%D0%B0%D1%81%D1%82%D1%8C) — это определённая игроком группа чанков, которые продолжают обновляться, даже если рядом нет игрока. Служит для управления заданными областями и создания новых.
 
@@ -647,3 +660,5 @@ Gui.animationDestroy(x, y, z);
     + добавлен метод item.setIsMirroredArt(boolean)
     + добавлен тип в параметры инжектора long
     + добавлена возможность получать float по offset getFloat()
+    + добавлены классы Player, Actor, Mob, Block
+    + добавлена возможность добавлять кастумный урон
