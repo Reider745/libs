@@ -10,7 +10,7 @@
 */
 LIBRARY({
 	name: "RenderUtil",
-	version: 4,
+	version: 5,
 	shared: true,
 	api: "CoreEngine"
 });
@@ -18,7 +18,7 @@ let RenderAPI = {
 	models: {},
 	Model(){
 		let boxes = {};
-		this.addBoxByBlock = function(name, x1, y1, z1, x2, y2, z2, id, data){
+		this.addBoxByBlock = function(name, x1, y1, z1, x2, y2, z2, id, data, icRenderIf){
 			boxes[name || Object.keys(boxes).length] = {
 				x1: x1,
 				y1: y1,
@@ -27,7 +27,9 @@ let RenderAPI = {
 				y2: y2 || y1,
 				z2: z2 || z1,
 				id: id || 1,
-				data: data || 0
+				data: data || 0,
+				textures: Array.isArray(id),
+				icRenderIf: icRenderIf
 			};
 			return this;
 		}
@@ -43,24 +45,43 @@ let RenderAPI = {
 		}
 		this.getBlockRender = function(){
 			let model = BlockRenderer.createModel(); 
-			let keys = Object.keys(boxes);
-			for(let i in keys)
-				model.addBox(boxes[keys[i]].x1, boxes[keys[i]].y1, boxes[keys[i]].z1, boxes[keys[i]].x2, boxes[keys[i]].y2, boxes[keys[i]].z2, boxes[keys[i]].id, boxes[keys[i]].data);
+			for(let key in boxes){
+				let box = boxes[key];
+				if(box.textures)
+					model.addBox(box.x1, box.y1, box.z1, box.x2, box.y2, box.z2, box.id);
+				else
+					model.addBox(box.x1, box.y1, box.z1, box.x2, box.y2, box.z2, box.id, box.data);
+			}
 			return model;
 		}
 		this.getCollisionShape = function(){
 			let model = new ICRender.CollisionShape(); 
-			let entry = model.addEntry();
-			let keys = Object.keys(boxes);
-			for(let i in keys)
-				if(boxes[keys[i]].id !== 0)
-					entry.addBox(boxes[keys[i]].x1, boxes[keys[i]].y1, boxes[keys[i]].z1, boxes[keys[i]].x2, boxes[keys[i]].y2, boxes[keys[i]].z2);
+			for(let key in boxes){
+				let entry = model.addEntry();
+				let box = boxes[key];
+				if(box.id !== 0){
+					entry.addBox(box.x1, box.y1, box.z1, box.x2, box.y2, box.z2);
+					if(box.icRenderIf)	
+						entry.setCondition(box.icRenderIf);
+				}
+			}
 			return model;
 		}
 		this.getICRenderModel = function(){
 			let render = new ICRender.Model(); 
-			render.addEntry(this.getBlockRender());
+			for(let key in boxes){
+				let box = boxes[key];
+				if(box.textures)
+					var entry = render.addEntry(new BlockRenderer.Model(box.x1, box.y1, box.z1, box.x2, box.y2, box.z2, box.id));
+				else
+					var entry = render.addEntry(new BlockRenderer.Model(box.x1, box.y1, box.z1, box.x2, box.y2, box.z2, box.id, box.data));
+				if(box.icRenderIf)
+					entry.setCondition(box.icRenderIf);
+			}
 			return render;
+		}
+		this.setItemModel = function(id, data){
+			ItemModel.getForWithFallback(id, data||0).setModel(this.getBlockRender());
 		}
 		this.setBlockModel = function(id, data){
 			RenderAPI.models[id+":"+data] = this.copy();
@@ -71,12 +92,98 @@ let RenderAPI = {
 		}
 		this.copy = function(){
 			let model = new RenderAPI.Model();
-			model.setBoxes(JSON.parse(JSON.stringify(boxes)));
+			let result = {};
+			for(let key in boxes){
+				let box = boxes[key];
+				result[key] = {
+					x1: box.x1,
+					y1: box.y1,
+					z1: box.z1,
+					x2: box.x2,
+					y2: box.y2,
+					z2: box.z2,
+					id: box.id,
+					data: box.data,
+					textures: box.textures,
+					icRenderIf: box.icRenderIf
+				};
+			}
+			model.setBoxes(result);
 			return model;
 		}
 		this.getRenderMesh = function(){
 			return RenderAPI.convertModel(this.getBlockRender());
 		}
+		function getName(name, count){
+			count = count || 0;
+			if(!boxes[name+"_"+count])
+				return name+"_"+count;
+			count++;
+			return getName(name, count);
+		}
+		this.addModel = function(model, is){
+			if(is === undefined) is = true;
+			if(!model) return this;
+			let boxes_ = model.copy().getBoxes();
+			let names = [];
+			for(let key in boxes_){
+				let key_ = key;
+				if(boxes[key_] !== undefined && is)
+					key_ = getName(key);
+				names.push(key_);
+				boxes[key_] = boxes_[key];
+			}
+			return names;
+		}
+		this.isClick = function(x, y, z){
+			let array = [];
+			for(let i in boxes)
+				array.push(RenderAPI.isClick(x, y, z, boxes[i]));
+			return array.indexOf(true) != -1;
+		}
+	},
+	models: {},
+	ModelsCache(group){
+		let caches = {};
+		this.add = function(name, model){
+			caches[name] = model;
+		}
+		this.get = function(name){
+			return caches[name];
+		}
+		RenderAPI.models[group] = this;
+	},
+	getGroup(name){
+		return this.models[name];
+	},
+	TileEntityClient(prot){
+		for(let key in prot)
+			this[key] = prot[key];
+		
+		this.uptModel = function(){
+			const model = RenderAPI.getGroup(String(this.networkData.getString("group"))).get(String(this.networkData.getString("name"))).copy();
+			if(prot.buildModel) prot.buildModel.call(this, model);
+			BlockRenderer.mapAtCoords(this.x, this.y, this.z, model.getICRenderModel());
+			BlockRenderer.mapCollisionAndRaycastModelAtCoords(this.dimension, this.x, this.y, this.z, model.getCollisionShape());
+			if(prot.changedListener) prot.changedListener.call(this);
+		}
+		this.load = function(){
+			let self = this;
+			this.uptModel();
+			this.networkData.addOnDataChangedListener(function(data, isExternal){
+				self.uptModel();
+			});
+			if(prot.load) prot.load.call(this);
+		}
+		this.unload = function(){
+			BlockRenderer.unmapAtCoords(this.x, this.y, this.z);
+			BlockRenderer.unmapCollisionAndRaycastModelAtCoords(this.dimension||0, this.x, this.y, this.z);
+			if(prot.unload) prot.unload.call(this);
+		}
+	},
+	updateModelTileEntity(network, group, name){
+		network.putString("group", group);
+		network.putString("name", name);
 	},
 	ModelAnimation(){
 		let time = 40;
@@ -306,8 +413,8 @@ let RenderAPI = {
 	},
 	isClick(x, y, z, box){
 		if((x >= box.x1 && y >= box.y1 && z >= box.z1) && (x <= box.x2 && y <= box.y2 && z <= box.z2))
-            return true;
-        return false;
+			return true;
+		return false;
 	},
 	isClickBox(x, y, z, model, box_name){
 		return this.isClick(x, y, z, model.getBoxes()[box_name]);
