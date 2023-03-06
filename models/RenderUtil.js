@@ -10,7 +10,7 @@
 */
 LIBRARY({
 	name: "RenderUtil",
-	version: 5,
+	version: 7,
 	shared: true,
 	api: "CoreEngine"
 });
@@ -32,6 +32,10 @@ let RenderAPI = {
 				icRenderIf: icRenderIf
 			};
 			return this;
+		}
+		this.addBox = this.addBoxByBlock;
+		this.add = function(x1, y1, z1, x2, y2, z2, id, data, icRenderIf){
+			return this.addBox(null, x1, y1, z1, x2, y2, z2, id, data, icRenderIf);
 		}
 		this.getBoxes = function(){
 			return boxes;
@@ -82,20 +86,22 @@ let RenderAPI = {
 		}
 		this.setItemModel = function(id, data){
 			ItemModel.getForWithFallback(id, data||0).setModel(this.getBlockRender());
+			return this;
 		}
 		this.setBlockModel = function(id, data){
 			RenderAPI.models[id+":"+data] = this.copy();
-			data = data || -1
+			data = data === undefined ? -1 : data
 			BlockRenderer.setStaticICRender(id, data, this.getICRenderModel());
 			BlockRenderer.setCustomCollisionAndRaycastShape(id, data, this.getCollisionShape())
 			return this; 
 		}
-		this.copy = function(){
+		this.copy = function(cl){
+			cl = cl || function(obj){return obj}
 			let model = new RenderAPI.Model();
 			let result = {};
 			for(let key in boxes){
 				let box = boxes[key];
-				result[key] = {
+				result[key] = cl({
 					x1: box.x1,
 					y1: box.y1,
 					z1: box.z1,
@@ -106,7 +112,7 @@ let RenderAPI = {
 					data: box.data,
 					textures: box.textures,
 					icRenderIf: box.icRenderIf
-				};
+				});
 			}
 			model.setBoxes(result);
 			return model;
@@ -140,6 +146,75 @@ let RenderAPI = {
 			for(let i in boxes)
 				array.push(RenderAPI.isClick(x, y, z, boxes[i]));
 			return array.indexOf(true) != -1;
+		}
+		this.rotate = function(rotate){
+			switch(rotate){
+				case 1:
+					return this.copy(function(obj){
+						let y = 1-obj.y1;
+						obj.y1 = 1-obj.y2;
+						obj.y2 = y;
+						return obj;
+					});
+				case 2:
+					return this.copy(function(obj){
+						let z1 = obj.z1;
+						let z2 = obj.z2;
+						let y1 = obj.y1;
+						let y2 = obj.y2;
+						obj.z1 = y1;
+						obj.z2 = y2;
+						obj.y1 = z1;
+						obj.y2 = z2;
+						return obj;
+					});
+				case 3:
+					return this.copy(function(obj){
+						let z1 = 1-obj.z1;
+						let z2 = 1-obj.z2;
+						let y1 = 1-obj.y1;
+						let y2 = 1-obj.y2;
+						obj.z1 = y2;
+						obj.z2 = y1;
+						obj.y1 = z2;
+						obj.y2 = z1;
+						return obj;
+					});
+				case 4:
+					return this.copy(function(obj){
+						let x1 = obj.x1;
+						let x2 = obj.x2;
+						let z1 = obj.z1;
+						let z2 = obj.z2;
+						let y1 = obj.y1;
+						let y2 = obj.y2;
+						obj.x1 = y1;
+						obj.x2 = y2;
+						obj.z1 = x1;
+						obj.z2 = x2;
+						obj.y1 = z1;
+						obj.y2 = z2;
+						return obj;
+					});
+				case 5:
+					return this.copy(function(obj){
+						let x1 = 1-obj.x1;
+						let x2 = 1-obj.x2;
+						let z1 = 1-obj.z1;
+						let z2 = 1-obj.z2;
+						let y1 = 1-obj.y1;
+						let y2 = 1-obj.y2;
+						obj.x1 = y2;
+						obj.x2 = y1;
+						obj.z1 = x2;
+						obj.z2 = x1;
+						obj.y1 = z2;
+						obj.y2 = z1;
+						return obj;
+					});
+				default:
+					return this.copy();
+			}
 		}
 	},
 	models: {},
