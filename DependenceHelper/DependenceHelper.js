@@ -5,7 +5,7 @@
 */
 LIBRARY({
 	name: "DependenceHelper",
-	version: 2,
+	version: 5,
 	shared: true,
 	api: "CoreEngine"
 });
@@ -22,10 +22,13 @@ let Information = null;
 ModAPI.addAPICallback("ItemInformation", function(api){
 	Information = api.ItemInformation;
 });
-//let Dialog = com.zhekasmirnov.innercore.api.log.DialogHelper;
+
 let Builder = android.app.AlertDialog.Builder;
 let Html = android.text.Html;
 let UIUtils = com.zhekasmirnov.innercore.utils.UIUtils;
+
+let LoadingUI = com.zhekasmirnov.innercore.ui.LoadingUI;
+
 function DialogList(items){
 	let builder = new Builder(UIUtils.getContext());
 	this.show = function(){
@@ -68,8 +71,9 @@ function Dialog(title){
 		});
 	}
 }
+let selfs = [];
 let dependences = [];
-function Dependence(name){
+function Dependence(name, priority){
 	this.mods = [];
 	this.launch = function(){};
 	this.loaded = {};
@@ -77,8 +81,8 @@ function Dependence(name){
 	this.isLoader = {};
 	this.customMessage = {};
 	this.name = name;
+	this.priority = priority || 0;
 	let self = this;
-	this.self = self;
 	this.addDependence = function(mod, url, unification, isLoader, customMessage){
 		this.mods.push({name: mod, url: url});
 		ModAPI.addAPICallback(mod, function(api){
@@ -103,8 +107,15 @@ function Dependence(name){
 		this.launch = func;
 		return this;
 	}
-	let is = true;
-	Callback.addCallback("ModsLoaded", function(){
+	this.is = true;
+	selfs.push(this);
+}
+Callback.addCallback("CoreConfigured", function(){
+	selfs.sort(function(a, b){
+		return a.priority - b.priority
+	});
+	for(let i in selfs){
+		let self = selfs[i];
 		let keys = Object.keys(self.loaded);
 		let mods = [];
 		for(let i in self.mods)
@@ -117,25 +128,28 @@ function Dependence(name){
 			let keys = Object.keys(self.unification);
 			for(let i in keys)
 				self.unification[keys[i]](self.loaded[keys[i]], api);
+			LoadingUI.setTip("Mod load "+self.name);
 			self.launch(self.loaded, api);
+			Callback.invokeCallback(self.name);
+			LoadingUI.setTip("");
 			if(Information != null)
 				Information.endModLoad();
 		}
-		else if(is){
+		else if(self.is){
 			dependences.push(self);
-			is = false;
+			self.is = false;
 		}
-	});
-}
+	}
+}, 1);
 Dependence.urls = {};
 Callback.addCallback("PostLoaded", function(){
 	let dialog = new Dialog(Translation.translate("Failed to launch mods"));
 	for(let i in dependences){
 		let self = dependences[i];
 		dialog.addLine(Translation.translate("Failed to launch the mod {name}, mods are required:").replace("{name}", self.name));
-		let mods = dependences[i].self.mods;
+		let mods = self.mods;
 		for(let j in mods){
-			dialog.addLine(self.self.customMessage[mods[j].name](self.self.loaded[mods[j].name]));
+			dialog.addLine(self.customMessage[mods[j].name](self.loaded[mods[j].name]));
 			if(mods[j].url)
 				Dependence.urls[mods[j].name] = mods[j].url;
 		}

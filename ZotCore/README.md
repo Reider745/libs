@@ -1,0 +1,42 @@
+
+# Item
+- *Item
+    - addCreativeGroup
+    - addRepairItemIds
+    - addToCreative
+    - createArmorItem
+    - createFoodItem
+    - createFuelItem
+    - createItem
+    - createThrowableItem
+    - describeItem
+    - getItemById
+    - getMaxDamage
+    - getMaxStack
+    - getName
+    - getNumericId
+    - invokeItemUseOn
+    - isNativeItem
+    - isValid
+    - registerDispenseFunction
+    + registerIconOverrideFunction
+    + registerNameOverrideFunction
+    - registerNoTargetUseFunction
+    - registerThrowableFunction
+    - registerThrowableFunctionForID
+    - registerUseFunction
+    - registerUseFunctionForID
+    - registerUsingCompleteFunction
+    - registerUsingReleasedFunction
+    - setAllowedInOffhand
+    - setCategory
+    - setEnchantType
+    + setGlint
+    - setLiquidClip
+    - setMaxDamage
+    - setMaxUseDuration
+    - setProperties
+    - setPrototype
+    - setStackedByData
+    + setToolRender
+    + setUseAnimation
