@@ -1,0 +1,6 @@
+[
+	{
+		"symbol": "_ZN7Creeper10normalTickEv",
+		"callback": "CreeperTick"
+	}
+]

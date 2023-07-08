@@ -1,0 +1,7 @@
+{
+	"name": "CreeperAnimation",
+	"version": 1,
+	
+	"code": "main.js",
+	"hooks": "hooks.json"
+}
