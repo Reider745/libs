@@ -1,1 +1,7 @@
-[]
+[
+  {
+    "name": "Inner Core Server",
+    "ip": "node1.novadev.ru",
+    "port": 25567
+  }
+]
