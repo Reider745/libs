@@ -10,10 +10,12 @@
 */
 LIBRARY({
 	name: "ParticlesCore",
-	version: 3,
+	version: 4,
 	shared: true,
 	api: "CoreEngine"
 });
+
+let radius_visable = 50; 
 
 function uptPos(self, start, end, value){
 	self.setPos(self.coords.x, start+((end-start)*value), self.coords.z);
@@ -44,7 +46,11 @@ let AnimationType = {
 					uptPos(this, this.start, this.end, value);
 			});
 		obj.tick = obj.tick || function(){};
+		
 		return function(){
+			if(Entity.getDistanceBetweenCoords(this.coords, Player.getPosition()) > radius_visable)
+				return;
+			
 			obj.tick.call(this);
 			for(let i in funcs)
 				funcs[i].call(this);
@@ -55,16 +61,21 @@ let AnimationType = {
 
 Callback.addCallback("LevelDisplayed", function(){
 	Network.addClientPacket("api.particle", function(data){
-		if(Entity.getDimension(Player.get()) != data.d) return;
+		//if(Entity.getDimension(Player.get()) != data.d) return;
 		Particles.addParticle(ParticlesStorage.get(data.p), data.x, data.y, data.z, data.vx||0, data.vy||0, data.vz||0);
 	});
 	Network.addClientPacket("api.particle_array", function(packet){
-		if(Entity.getDimension(Player.get()) != packet.d) return;
+		//if(Entity.getDimension(Player.get()) != packet.d) return;
 		for(let i in packet.arr){
 			let data = packet.arr[i];
 			Particles.addParticle(ParticlesStorage.get(data.type), data.x, data.y, data.z, data.vx||0, data.vy||0, data.vz||0);
 		}
 	});
+});
+
+Callback.addCallback("LevelLeft", function(){
+	Network.addClientPacket("api.particle", function(data){});
+	Network.addClientPacket("api.particle_array", function(packet){});
 });
 
 let ParticlesStorage = {
@@ -103,6 +114,31 @@ let ParticlesStorage = {
 		ParticlesStorage.add(key, Native.ParticleType[key]);
 })();
 
+function getVisibalePlayers(reg, x, y, z, r){
+	return reg.fetchEntitiesInAABB(x - r, y - r, z - r, x + r, y + r, z + r, EEntityType.PLAYER, false)
+}
+
+function forEachClientVP(d, x, y, z, r, func){
+	let players = getVisibalePlayers(d, x, y, z, r);
+	for(let i in players){
+		let client = Network.getClientForPlayer(players[i]);
+		if(client)
+			func(client)
+	}
+}
+
+function min(x, y){
+	if(y) return Math.min(x, y);
+	return x;
+}
+
+function max(x, y){
+	if(y) return Math.max(x, y);
+	return x;
+}
+
+let abs = Math.abs;
+
 let ParticlesCore = {
 	getVector(pos1, pos2){
 		return {
@@ -112,17 +148,20 @@ let ParticlesCore = {
 		};
 	},
 	spawnParticle(region, type, x, y, z, vx, vy, vz){
-		Network.sendToAllClients("api.particle", {
-			p: type, d: typeof region == "number" ? region : region.getDimension(),
-			x: x, y: y, z: z,
-			vx: vx, vy: vy, vz: vz
-		})
+		forEachClientVP(typeof region == "number" ? BlockSource.getDefaultForDimension(region) : region, x, y, z, radius_visable, function(client){
+			client.send("api.particle", {
+				p: type, 
+				x: x, y: y, z: z,
+				vx: vx, vy: vy, vz: vz
+			})
+		});
 	},
-	spawnParticles(region, arr){
-		Network.sendToAllClients("api.particle_array", {
-			d: typeof region == "number" ? region : region.getDimension(),
-			arr: arr
-		})
+	spawnParticles(region, arr, x, y, z, r){
+		forEachClientVP(typeof region == "number" ? BlockSource.getDefaultForDimension(region) : region, x, y, z, r, function(client){
+			client.send("api.particle_array", {
+				arr: arr
+			})
+		});
 	},
 	spawnCoords(region, part, x1, y1, z1, x2, y2, z2, time){
 		let vec = this.getVector({x: x1, y: y1, z: z1}, {x: x2, y: y2, z: z2});
@@ -130,12 +169,26 @@ let ParticlesCore = {
 	},
 	Group(){
 		let particles = [];
+		
+		let maxX, minX;
+		let maxY, minY;
+		let maxZ, minZ;
+		
 		this.add = function(type, x, y, z, vx, vy, vz){
+			minX = min(x, minX);
+			maxX = max(x, maxX);
+			
+			minY = min(y, minY);
+			maxY = max(y, maxY);
+			
+			minZ = min(z, minZ);
+			maxZ = max(z, maxZ);
+			
 			particles.push({type: type, x: x, y: y, z: z, vx: vx, vy: vy, vz: vz});
 			return this;
 		}
 		this.send = function(region){
-			ParticlesCore.spawnParticles(region, particles);
+			ParticlesCore.spawnParticles(region, particles, (maxX + minX) / 2, (maxY + minY) / 2, (maxZ + minZ) / 2, Math.max(abs(maxX) - abs(minX), maxY - minY, abs(maxZ) - abs(minZ)) / 2 + radius_visable);
 		}
 	},
 	spawnLine(region, type, x1, y1, z1, x2, y2, z2, count){
@@ -147,13 +200,37 @@ let ParticlesCore = {
 	GroupLine(){
 		let particles = [];
 		let pre;
+		
+		let maxX = 0, minX = 0;
+		let maxY = 0, minY = 0;
+		let maxZ = 0, minZ = 0;
+		
 		this.addPoint = function(x, y, z){
+			minX = min(x, minX);
+			maxX = max(x, maxX);
+			
+			minY = min(y, minY);
+			maxY = max(y, maxY);
+			
+			minZ = min(z, minZ);
+			maxZ = max(z, maxZ);
+			
 			pre = [x, y, z];
 			return this;
 		}
 		this.add = function(type, count, x, y, z, vx, vy, vz){
 			if(pre == undefined)
 				return this;
+			
+			minX = Math.min(x);
+			maxX = Math.max(x);
+			
+			minY = Math.min(y);
+			maxY = Math.max(y);
+			
+			minZ = Math.min(z);
+			maxZ = Math.max(z);
+			
 			for(let i = 0;i<=count;i++)
 				particles.push({type: type, x: pre[0] + (x-pre[0]) * (i / count), y: pre[1] + (y-pre[1]) * (i / count), z: pre[2] + (z-pre[2]) * (i / count), vx: vx, vy: vy, vz: vz});
 			pre = undefined;
@@ -165,7 +242,7 @@ let ParticlesCore = {
 			return this;
 		}
 		this.send = function(region){
-			ParticlesCore.spawnParticles(region, particles);
+			ParticlesCore.spawnParticles(region, particles, (maxX + minX) / 2, (maxY + minY) / 2, (maxZ + minZ) / 2, Math.max(abs(maxX) - abs(minX), maxY - minY, abs(maxZ) - abs(minZ)) / 2 + radius_visable);
 		}
 	}
 };
@@ -173,3 +250,4 @@ let ParticlesCore = {
 EXPORT("AnimationType", AnimationType);
 EXPORT("ParticlesCore", ParticlesCore);
 EXPORT("ParticlesStorage", ParticlesStorage);
+EXPORT("getVisibalePlayers", getVisibalePlayers);
