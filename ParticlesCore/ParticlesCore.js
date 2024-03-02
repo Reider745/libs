@@ -10,7 +10,7 @@
 */
 LIBRARY({
 	name: "ParticlesCore",
-	version: 4,
+	version: 5,
 	shared: true,
 	api: "CoreEngine"
 });
@@ -60,11 +60,11 @@ let AnimationType = {
 };
 
 Callback.addCallback("LevelDisplayed", function(){
-	Network.addClientPacket("api.particle", function(data){
+	Network.addClientPacket("pc.particle", function(data){
 		//if(Entity.getDimension(Player.get()) != data.d) return;
 		Particles.addParticle(ParticlesStorage.get(data.p), data.x, data.y, data.z, data.vx||0, data.vy||0, data.vz||0);
 	});
-	Network.addClientPacket("api.particle_array", function(packet){
+	Network.addClientPacket("pc.particle_array", function(packet){
 		//if(Entity.getDimension(Player.get()) != packet.d) return;
 		for(let i in packet.arr){
 			let data = packet.arr[i];
@@ -74,8 +74,8 @@ Callback.addCallback("LevelDisplayed", function(){
 });
 
 Callback.addCallback("LevelLeft", function(){
-	Network.addClientPacket("api.particle", function(data){});
-	Network.addClientPacket("api.particle_array", function(packet){});
+	Network.addClientPacket("pc.particle", function(data){});
+	Network.addClientPacket("pc.particle_array", function(packet){});
 });
 
 let ParticlesStorage = {
@@ -149,7 +149,7 @@ let ParticlesCore = {
 	},
 	spawnParticle(region, type, x, y, z, vx, vy, vz){
 		forEachClientVP(typeof region == "number" ? BlockSource.getDefaultForDimension(region) : region, x, y, z, radius_visable, function(client){
-			client.send("api.particle", {
+			client.send("pc.particle", {
 				p: type, 
 				x: x, y: y, z: z,
 				vx: vx, vy: vy, vz: vz
@@ -158,7 +158,7 @@ let ParticlesCore = {
 	},
 	spawnParticles(region, arr, x, y, z, r){
 		forEachClientVP(typeof region == "number" ? BlockSource.getDefaultForDimension(region) : region, x, y, z, r, function(client){
-			client.send("api.particle_array", {
+			client.send("pc.particle_array", {
 				arr: arr
 			})
 		});
