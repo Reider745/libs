@@ -1,6 +1,6 @@
 LIBRARY({
 	name: "BookHelper",
-	version: 1,
+	version: 2,
 	shared: true,
 	api: "CoreEngine"
 });
@@ -34,7 +34,8 @@ function copyObjectLegacy(obj){
 };
 
 Network.addClientPacket("book_helper.open", function(data){
-	Book.get(data.identifier).openClient(data.page);
+	Book.get(data.identifier)
+		.openClient(data.page);
 });
 
 let TextureSource = WRAP_JAVA('com.zhekasmirnov.innercore.api.mod.ui.TextureSource').instance;
@@ -110,15 +111,17 @@ function Book(identifier){
 	
 	this.open = function(player, page){
 		let client = Network.getClientForPlayer(player);
-		if(client) client.send("book_helper.open", {identifier: identifier, page: page});
+		client && client.send("book_helper.open", {
+			identifier: identifier, 
+			page: page
+		});
 		return this;
 	}
 	
 	this.registerItem = function(id, page){
 		let self = this;
 		Callback.addCallback("ItemUse", function(coords, item, block, isExter, player){
-			if(item.id == id)
-				self.open(player, page)
+			item.id == id && self.open(player, page);
 		});
 	}
 }
@@ -235,42 +238,45 @@ function Page(){
 				"close": {type: "close_button", x: 900, y: 0, bitmap: "classic_close_button", scale: 5}
 			}
 		};
+		
 		updateUi(book, content, true, this);
 		updateUi(book, content, false, this);
-		let self = this;
-		if(link.next){
+		
+		if(link.next)
 			content.elements["next_button"] = {type: "button", x: 910, y: HEIGHT - 45, bitmap: "next_page", scale: 3, clicker: {
 				onClick(){
-					self.close(book);
 					book.openClient(link.next);
 				}
-			}}
-		}
-		if(link.pre){
+			}};
+		
+		if(link.pre)
 			content.elements["pre_button"] = {type: "button", x: 50, y: HEIGHT - 45, bitmap: "pre_page", scale: 3, clicker: {
 				onClick(){
-					self.close(book);
 					book.openClient(link.pre);
 				}
-			}}
-		}
-		let ui = ui_ || new UI.Window();
-		ui.setContent(content);
-		ui.setCloseOnBackPressed(true);
-		ui.setBlockingBackground(true);
-		book.setUi(ui);
-		if(ui_)
+			}};
+		
+		if(ui_){
+			var ui = ui_;
+			ui.setContent(content);
 			ui.forceRefresh();
-		else
+		}else{
+			var ui = new UI.Window();
+			ui.setContent(content);
+			ui.setCloseOnBackPressed(true);
+			ui.setBlockingBackground(true);
+			ui.setDynamic(true);
+			book.setUi(ui);
 			ui.open();
+		}
+		
 		return ui;
 	}
 	
 	this.close = function(book){
 		let ui = book.getUi();
-		if(ui)
-			ui.close();
-		book.setUi(undefined)
+		ui && ui.close();
+		book.setUi();
 		return this;
 	}
 }
@@ -390,10 +396,7 @@ function TextTypeElement(text, obj){
 		let text_ = getStr(text, relSize*size);
 		let result = [{type: "text", text: text_.result, x: data.x, y: data.y, multiline: true, font: {color: color, size: relSize*size, underline: obj.underline, cursive: obj.cursive, bold: obj.bold, alignment: obj.alignment}, clicker: {
 			onClick(){
-				if(obj.link){
-					page.close(book);
-					book.openClient(obj.link);
-				}
+				obj.link && book.openClient(obj.link, book.getUi());
 				obj.onClick.apply(this, arguments);
 			},
 			onLongClick(){
@@ -480,10 +483,7 @@ function SlotsTypeElement(slots){
 			size_max = Math.max(size_max, size);
 			arr.push({type: "slot", bitmap: slot.texture, x: x, y: y, size: size, visual: true, source: slot.item, clicker: {
 				onClick(){
-					if(slot.link){
-						page.close(book);
-						book.openClient(slot.link);
-					}
+					slot.link && book.openClient(slot.link, book.getUi());
 					slot.onClick.apply(this, arguments);
 				},
 				onLongClick(){
@@ -517,6 +517,7 @@ EXPORT("BookElements", {
 	Slot: SlotsTypeElement
 });
 
+// Загрузка текстур из формата base64
 loadTexture("next_page", "iVBORw0KGgoAAAANSUhEUgAAABIAAAAKCAYAAAC5Sw6hAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAIGNIUk0AAHolAACAgwAA+f8AAIDoAABSCAABFVgAADqXAAAXb9daH5AAAACVSURBVHjanJKxDYAwDAS9iMUmlEggT8EQhBmYA9aho3RJgZQdTGUrBBMQxVX2nyJ/YFtm+AoTyhOfJWsFsk+9y03EhPJHdhHp0puMCWWfeoljJ3HsriKVHKEtylRyhNYwkUpiaAwd5uR76a69iAklDrXh3UJnTCiacW+UyzxUkmbWCuTWSumvpJI0sy0zuBWXeGrzHADH/p+QhL7HOwAAAABJRU5ErkJggg==");
 
 loadTexture("pre_page", "iVBORw0KGgoAAAANSUhEUgAAABIAAAAKCAYAAAC5Sw6hAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAIGNIUk0AAHolAACAgwAA+f8AAIDoAABSCAABFVgAADqXAAAXb9daH5AAAACcSURBVHjapJGxDcQgDEW9CGITypMuYooMQTJD5oB16CgpU5zkHXyVfT4rkJOueI3xfxgDPToa0UqGX4EeHZ3Hekn1QH+L7iR2YhHhvhDuC53HevsszujLpPjansJMpvu17DPR9viCZRbbyzIR9eioeqAeHWEKhClc7o7PMAXJtJIBOMwFKxuhM61kAA7rPbBshs0Mf6Z6oBm2/z0A6vyfkJJHalgAAAAASUVORK5CYII=");
